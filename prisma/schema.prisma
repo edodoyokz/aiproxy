@@ -1,0 +1,208 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum PlanTier {
+  FREE
+  STARTER
+  PRO
+}
+
+enum AuditAction {
+  API_KEY_CREATED
+  API_KEY_REVOKED
+  PROVIDER_CONNECTED
+  PROVIDER_DISCONNECTED
+  PLAN_UPGRADED
+  PLAN_DOWNGRADED
+  WORKSPACE_SUSPENDED
+  WORKSPACE_REACTIVATED
+  USER_INVITED
+  USER_REMOVED
+  RUNTIME_PROVISIONED
+  RUNTIME_TERMINATED
+  WORKSPACE_CREATED
+}
+
+enum RuntimeStatus {
+  PROVISIONING
+  ACTIVE
+  SUSPENDED
+  FAILED
+  TERMINATED
+}
+
+enum ProviderConnectionStatus {
+  PENDING
+  CONNECTED
+  FAILED
+  DISCONNECTED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  name          String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  workspaces    WorkspaceMember[]
+  auditLogs     AuditLog[]
+}
+
+model Workspace {
+  id              String    @id @default(cuid())
+  name            String
+  slug            String    @unique
+  planTier        PlanTier  @default(FREE)
+  isSuspended     Boolean   @default(false)
+  suspendedReason String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  members         WorkspaceMember[]
+  apiKeys         ApiKey[]
+  requests        Request[]
+  providers       ProviderConnection[]
+  auditLogs       AuditLog[]
+  runtimes        Runtime[]
+  usageEvents     UsageEvent[]
+  
+  @@index([slug])
+}
+
+model WorkspaceMember {
+  id          String    @id @default(cuid())
+  workspaceId String
+  userId      String
+  role        String    @default("member") // owner, admin, member
+  createdAt   DateTime  @default(now())
+  
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([workspaceId, userId])
+  @@index([userId])
+}
+
+model ApiKey {
+  id          String    @id @default(cuid())
+  key         String    @unique
+  name        String
+  workspaceId String
+  createdBy   String
+  runtimeId   String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  lastUsedAt  DateTime?
+  
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  runtime     Runtime?  @relation(fields: [runtimeId], references: [id], onDelete: SetNull)
+  requests    Request[]
+  usageEvents UsageEvent[]
+  
+  @@index([workspaceId])
+  @@index([key])
+  @@index([runtimeId])
+}
+
+model Runtime {
+  id          String        @id @default(cuid())
+  workspaceId String
+  endpoint    String
+  status      RuntimeStatus @default(PROVISIONING)
+  region      String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  workspace   Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  apiKeys     ApiKey[]
+  providers   ProviderConnection[]
+  
+  @@index([workspaceId])
+  @@index([status])
+}
+
+model ProviderConnection {
+  id          String                  @id @default(cuid())
+  workspaceId String
+  runtimeId   String
+  provider    String                  // openai, anthropic, google, etc
+  status      ProviderConnectionStatus @default(PENDING)
+  isActive    Boolean                 @default(true)
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @updatedAt
+  
+  workspace   Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  runtime     Runtime     @relation(fields: [runtimeId], references: [id], onDelete: Cascade)
+  
+  @@unique([runtimeId, provider])
+  @@index([workspaceId])
+  @@index([runtimeId])
+}
+
+model Request {
+  id              String    @id @default(cuid())
+  apiKeyId        String
+  workspaceId     String
+  provider        String
+  model           String
+  promptTokens    Int
+  completionTokens Int
+  totalTokens     Int
+  cost            Float
+  status          String
+  latencyMs       Int
+  createdAt       DateTime  @default(now())
+  
+  apiKey          ApiKey    @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  
+  @@index([workspaceId, createdAt])
+  @@index([apiKeyId, createdAt])
+}
+
+model UsageEvent {
+  id              String    @id @default(cuid())
+  apiKeyId        String
+  workspaceId     String
+  provider        String
+  model           String
+  promptTokens    Int
+  completionTokens Int
+  totalTokens     Int
+  cost            Float
+  status          String    // success, error
+  latencyMs       Int
+  timestamp       DateTime  @default(now())
+  metadata        Json?
+  
+  apiKey          ApiKey    @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  
+  @@index([workspaceId, timestamp])
+  @@index([apiKeyId, timestamp])
+}
+
+model AuditLog {
+  id          String      @id @default(cuid())
+  workspaceId String
+  userId      String?
+  action      AuditAction
+  resourceType String?    // ApiKey, Provider, Workspace, Runtime, etc
+  resourceId  String?
+  metadata    Json?
+  createdAt   DateTime    @default(now())
+  
+  workspace   Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  @@index([workspaceId, createdAt])
+  @@index([userId])
+}
