@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
 import { validateApiKey } from '@/lib/api-key'
 import { checkWorkspaceLimit } from '@/lib/workspace'
 import { logUsageEvent } from '@/lib/analytics'
-import { runtimeService } from '@/integrations/runtime'
+import { chatCompletionRequestSchema } from '@/lib/providers/proxy'
+import { getProxyErrorResponse, resolveRequestId } from '@/lib/proxy-http'
+import { forwardChatCompletionToRuntime } from '@/lib/runtime-proxy'
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now()
+  const requestId = resolveRequestId(request.headers.get('x-request-id'))
   
   try {
     const authHeader = request.headers.get('authorization')
@@ -29,47 +31,11 @@ export async function POST(request: NextRequest) {
       }, { status: 429 })
     }
 
-    const body = await request.json()
-    const { model, messages, provider = 'openai' } = body
-
-    // Validate request through runtime service
-    // TODO: This will eventually call CLIProxyAPIPlus to validate and route the request
-    const validation = await runtimeService.validateRequest(
-      apiKey.workspaceId,
-      apiKey.id,
-      provider,
-      model || 'gpt-3.5-turbo'
-    )
-
-    if (!validation.allowed) {
-      return NextResponse.json({ 
-        error: validation.reason || 'Request not allowed' 
-      }, { status: 403 })
-    }
-
-    // Mock LLM response
-    // TODO: Replace with actual CLIProxyAPIPlus request forwarding
-    const mockResponse = {
-      id: `chatcmpl-${Date.now()}`,
-      object: 'chat.completion',
-      created: Math.floor(Date.now() / 1000),
-      model: model || 'gpt-3.5-turbo',
-      choices: [
-        {
-          index: 0,
-          message: {
-            role: 'assistant',
-            content: 'This is a mock response from the Aiproxy service.',
-          },
-          finish_reason: 'stop',
-        },
-      ],
-      usage: {
-        prompt_tokens: 50,
-        completion_tokens: 20,
-        total_tokens: 70,
-      },
-    }
+    const parsed = chatCompletionRequestSchema.parse(await request.json())
+    const upstream = await forwardChatCompletionToRuntime(apiKey.workspaceId, parsed, {
+      requestId,
+      runtimeId: apiKey.runtimeId,
+    })
 
     const latencyMs = Date.now() - startTime
 
@@ -77,26 +43,21 @@ export async function POST(request: NextRequest) {
     await logUsageEvent({
       workspaceId: apiKey.workspaceId,
       apiKeyId: apiKey.id,
-      provider,
-      model: model || 'gpt-3.5-turbo',
-      promptTokens: mockResponse.usage.prompt_tokens,
-      completionTokens: mockResponse.usage.completion_tokens,
-      totalTokens: mockResponse.usage.total_tokens,
-      cost: 0.0001, // Mock cost
+      provider: parsed.provider,
+      model: parsed.model,
+      promptTokens: upstream.usage.promptTokens,
+      completionTokens: upstream.usage.completionTokens,
+      totalTokens: upstream.usage.totalTokens,
+      cost: 0,
       latencyMs,
       status: 'success',
     })
 
-    // Sync usage to runtime
-    // TODO: This will eventually sync to CLIProxyAPIPlus for real-time monitoring
-    await runtimeService.syncUsage(apiKey.workspaceId, {
-      timestamp: new Date(),
-      tokensUsed: mockResponse.usage.total_tokens,
-      requestCount: 1,
-      cost: 0.0001,
+    return NextResponse.json(upstream.response, {
+      headers: {
+        'x-request-id': requestId,
+      },
     })
-
-    return NextResponse.json(mockResponse)
   } catch (error) {
     console.error('Proxy error:', error)
     
@@ -126,7 +87,14 @@ export async function POST(request: NextRequest) {
     } catch (logError) {
       console.error('Failed to log error event:', logError)
     }
-    
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+
+    const errorResponse = getProxyErrorResponse(error, requestId)
+
+    return NextResponse.json(errorResponse.body, {
+      status: errorResponse.status,
+      headers: {
+        'x-request-id': requestId,
+      },
+    })
   }
 }

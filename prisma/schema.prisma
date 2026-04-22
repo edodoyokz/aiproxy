@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -45,48 +45,96 @@ enum ProviderConnectionStatus {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  passwordHash  String
-  name          String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
-  workspaces    WorkspaceMember[]
-  auditLogs     AuditLog[]
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  workspaces WorkspaceMember[]
+  auditLogs  AuditLog[]
+  entitlementEvents EntitlementChangeEvent[]
 }
 
 model Workspace {
-  id              String    @id @default(cuid())
+  id              String   @id @default(cuid())
   name            String
-  slug            String    @unique
-  planTier        PlanTier  @default(FREE)
-  isSuspended     Boolean   @default(false)
+  slug            String   @unique
+  planTier        PlanTier @default(FREE)
+  isSuspended     Boolean  @default(false)
   suspendedReason String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  
-  members         WorkspaceMember[]
-  apiKeys         ApiKey[]
-  requests        Request[]
-  providers       ProviderConnection[]
-  auditLogs       AuditLog[]
-  runtimes        Runtime[]
-  usageEvents     UsageEvent[]
-  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  members     WorkspaceMember[]
+  apiKeys     ApiKey[]
+  requests    Request[]
+  providers   ProviderConnection[]
+  auditLogs   AuditLog[]
+  runtimes    Runtime[]
+  usageEvents UsageEvent[]
+  entitlement WorkspaceEntitlement?
+  billingState WorkspaceBillingState?
+  entitlementEvents EntitlementChangeEvent[]
+
   @@index([slug])
 }
 
+model WorkspaceEntitlement {
+  id            String   @id @default(cuid())
+  workspaceId   String   @unique
+  effectiveTier PlanTier
+  maxApiKeys    Int
+  maxProviders  Int
+  maxRequests   Int
+  retentionDays Int?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model WorkspaceBillingState {
+  id                String   @id @default(cuid())
+  workspaceId       String   @unique
+  billingStatus     String   @default("free")
+  paidActivationAt  DateTime?
+  expiresAt         DateTime?
+  notes             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model EntitlementChangeEvent {
+  id            String   @id @default(cuid())
+  workspaceId    String
+  actorUserId    String?
+  previousTier   PlanTier?
+  newTier        PlanTier
+  reason         String?
+  metadata       Json?
+  createdAt      DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  actorUser  User?     @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, createdAt])
+  @@index([actorUserId])
+}
+
 model WorkspaceMember {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   workspaceId String
   userId      String
-  role        String    @default("member") // owner, admin, member
-  createdAt   DateTime  @default(now())
-  
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  role        String   @default("member") // owner, admin, member
+  createdAt   DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([workspaceId, userId])
   @@index([userId])
 }
@@ -101,12 +149,12 @@ model ApiKey {
   isActive    Boolean   @default(true)
   createdAt   DateTime  @default(now())
   lastUsedAt  DateTime?
-  
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  runtime     Runtime?  @relation(fields: [runtimeId], references: [id], onDelete: SetNull)
+
+  workspace   Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  runtime     Runtime?     @relation(fields: [runtimeId], references: [id], onDelete: SetNull)
   requests    Request[]
   usageEvents UsageEvent[]
-  
+
   @@index([workspaceId])
   @@index([key])
   @@index([runtimeId])
@@ -120,89 +168,89 @@ model Runtime {
   region      String?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
-  
-  workspace   Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  apiKeys     ApiKey[]
-  providers   ProviderConnection[]
-  
+
+  workspace Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  apiKeys   ApiKey[]
+  providers ProviderConnection[]
+
   @@index([workspaceId])
   @@index([status])
 }
 
 model ProviderConnection {
-  id          String                  @id @default(cuid())
+  id          String                   @id @default(cuid())
   workspaceId String
   runtimeId   String
-  provider    String                  // openai, anthropic, google, etc
+  provider    String // openai, anthropic, google, etc
   status      ProviderConnectionStatus @default(PENDING)
-  isActive    Boolean                 @default(true)
-  createdAt   DateTime                @default(now())
-  updatedAt   DateTime                @updatedAt
-  
-  workspace   Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  runtime     Runtime     @relation(fields: [runtimeId], references: [id], onDelete: Cascade)
-  
+  isActive    Boolean                  @default(true)
+  createdAt   DateTime                 @default(now())
+  updatedAt   DateTime                 @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  runtime   Runtime   @relation(fields: [runtimeId], references: [id], onDelete: Cascade)
+
   @@unique([runtimeId, provider])
   @@index([workspaceId])
   @@index([runtimeId])
 }
 
 model Request {
-  id              String    @id @default(cuid())
-  apiKeyId        String
-  workspaceId     String
-  provider        String
-  model           String
-  promptTokens    Int
+  id               String   @id @default(cuid())
+  apiKeyId         String
+  workspaceId      String
+  provider         String
+  model            String
+  promptTokens     Int
   completionTokens Int
-  totalTokens     Int
-  cost            Float
-  status          String
-  latencyMs       Int
-  createdAt       DateTime  @default(now())
-  
-  apiKey          ApiKey    @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
-  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  
+  totalTokens      Int
+  cost             Float
+  status           String
+  latencyMs        Int
+  createdAt        DateTime @default(now())
+
+  apiKey    ApiKey    @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
   @@index([workspaceId, createdAt])
   @@index([apiKeyId, createdAt])
 }
 
 model UsageEvent {
-  id              String    @id @default(cuid())
-  apiKeyId        String
-  workspaceId     String
-  provider        String
-  model           String
-  promptTokens    Int
+  id               String   @id @default(cuid())
+  apiKeyId         String
+  workspaceId      String
+  provider         String
+  model            String
+  promptTokens     Int
   completionTokens Int
-  totalTokens     Int
-  cost            Float
-  status          String    // success, error
-  latencyMs       Int
-  timestamp       DateTime  @default(now())
-  metadata        Json?
-  
-  apiKey          ApiKey    @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
-  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  
+  totalTokens      Int
+  cost             Float
+  status           String // success, error
+  latencyMs        Int
+  timestamp        DateTime @default(now())
+  metadata         Json?
+
+  apiKey    ApiKey    @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
   @@index([workspaceId, timestamp])
   @@index([apiKeyId, timestamp])
 }
 
 model AuditLog {
-  id          String      @id @default(cuid())
-  workspaceId String
-  userId      String?
-  action      AuditAction
-  resourceType String?    // ApiKey, Provider, Workspace, Runtime, etc
-  resourceId  String?
-  metadata    Json?
-  createdAt   DateTime    @default(now())
-  
-  workspace   Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  user        User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
-  
+  id           String      @id @default(cuid())
+  workspaceId  String
+  userId       String?
+  action       AuditAction
+  resourceType String? // ApiKey, Provider, Workspace, Runtime, etc
+  resourceId   String?
+  metadata     Json?
+  createdAt    DateTime    @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
   @@index([workspaceId, createdAt])
   @@index([userId])
 }

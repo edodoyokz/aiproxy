@@ -1,12 +1,13 @@
 /**
  * Runtime Integration Module
- * 
+ *
  * Central export point for runtime adapter and related utilities.
  * Switch between mock and real implementation here.
  */
 
-import { IRuntimeAdapter } from './adapter'
-import { MockRuntimeAdapter } from './mock-adapter'
+import { prisma } from '@/lib/db'
+import { getRuntimeAdapter } from './adapter-instance'
+import { provisionWorkspaceRuntime, syncWorkspaceUsage } from './service'
 
 /**
  * TODO: Replace with real CLIProxyAPIPlus adapter when ready
@@ -36,35 +37,59 @@ import { MockRuntimeAdapter } from './mock-adapter'
  * ```
  */
 
-let adapterInstance: IRuntimeAdapter | null = null
+export const runtimeService = {
+  async validateRequest(
+    workspaceId: string,
+    apiKeyId: string,
+    provider: string,
+    model: string,
+  ) {
+    return {
+      allowed: true,
+      reason: undefined,
+      workspaceId,
+      apiKeyId,
+      provider,
+      model,
+    }
+  },
 
-/**
- * Get singleton runtime adapter instance
- * Currently returns mock implementation
- */
-export function getRuntimeAdapter(): IRuntimeAdapter {
-  if (!adapterInstance) {
-    // TODO: Switch to real adapter based on environment
-    // if (process.env.NODE_ENV === 'production') {
-    //   adapterInstance = new CLIProxyAPIPlusAdapter(...)
-    // } else {
-    //   adapterInstance = new MockRuntimeAdapter()
-    // }
-    
-    adapterInstance = new MockRuntimeAdapter()
-  }
-  
-  return adapterInstance
-}
+  async syncUsage(workspaceId: string, usage: Record<string, unknown>) {
+    void usage
+    await syncWorkspaceUsage(workspaceId)
+  },
 
-/**
- * Reset adapter instance (useful for testing)
- */
-export function resetRuntimeAdapter(): void {
-  adapterInstance = null
+  async revokeKey(runtimeId: string, keyId: string) {
+    await getRuntimeAdapter().revokeApiKey(runtimeId, keyId)
+  },
+
+  async checkHealth(runtimeId: string) {
+    return getRuntimeAdapter().checkHealth(runtimeId)
+  },
+
+  async getWorkspaceRuntimes(workspaceId: string) {
+    return prisma.runtime.findMany({
+      where: { workspaceId },
+      orderBy: { createdAt: 'desc' },
+    })
+  },
+
+  async provisionRuntime(workspaceId: string) {
+    const runtimeId = await provisionWorkspaceRuntime(workspaceId, 'system')
+    const runtime = await prisma.runtime.findUnique({ where: { id: runtimeId } })
+
+    if (!runtime) {
+      throw new Error('Failed to provision runtime')
+    }
+
+    return runtime
+  },
 }
 
 // Re-export types and interfaces
 export * from './types'
 export * from './adapter'
+export * from './adapter-instance'
+export * from './service'
 export { MockRuntimeAdapter } from './mock-adapter'
+export { CLIProxyAPIPlusAdapter, createCLIProxyAPIPlusAdapterFromEnv } from './cliproxyapiplus-adapter'

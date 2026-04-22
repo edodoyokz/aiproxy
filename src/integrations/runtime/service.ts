@@ -6,14 +6,12 @@
  */
 
 import { prisma } from '@/lib/db'
-import { getRuntimeAdapter } from './index'
+import { Prisma } from '@prisma/client'
+import { getRuntimeAdapter } from './adapter-instance'
 import {
-  ProvisionRuntimeRequest,
-  ConnectProviderRequest,
-  IssueApiKeyRequest,
   ProviderType,
-  RuntimeStatus,
   ProviderConnectionStatus,
+  RuntimeStatus,
 } from './types'
 import { logAudit } from '@/lib/audit'
 import { AuditAction } from '@prisma/client'
@@ -115,6 +113,7 @@ export async function connectWorkspaceProvider(
   const connection = await prisma.providerConnection.create({
     data: {
       id: response.connectionId,
+      workspaceId,
       runtimeId: runtime.id,
       provider: response.provider,
       status: response.status,
@@ -132,6 +131,44 @@ export async function connectWorkspaceProvider(
   })
 
   return connection.id
+}
+
+export async function disconnectWorkspaceProvider(
+  workspaceId: string,
+  userId: string,
+  connectionId: string,
+): Promise<void> {
+  const connection = await prisma.providerConnection.findFirst({
+    where: {
+      id: connectionId,
+      workspaceId,
+      isActive: true,
+    },
+  })
+
+  if (!connection) {
+    throw new Error('Provider connection not found')
+  }
+
+  const adapter = getRuntimeAdapter()
+  await adapter.disconnectProvider(connection.runtimeId, connection.id)
+
+  await prisma.providerConnection.update({
+    where: { id: connection.id },
+    data: {
+      status: ProviderConnectionStatus.DISCONNECTED,
+      isActive: false,
+    },
+  })
+
+  await logAudit({
+    workspaceId,
+    userId,
+    action: AuditAction.PROVIDER_DISCONNECTED,
+    resourceType: 'ProviderConnection',
+    resourceId: connection.id,
+    metadata: { provider: connection.provider },
+  })
 }
 
 /**
@@ -278,6 +315,9 @@ export async function syncWorkspaceUsage(workspaceId: string): Promise<number> {
         status: event.status,
         latencyMs: event.latencyMs,
         timestamp: event.timestamp,
+        metadata: event.metadata
+          ? (event.metadata as Prisma.InputJsonValue)
+          : undefined,
       })),
       skipDuplicates: true,
     })

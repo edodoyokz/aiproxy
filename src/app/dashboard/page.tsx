@@ -1,9 +1,10 @@
-'use client'
-
-import { useState, useEffect } from 'react'
+import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { OnboardingChecklist } from '@/components/onboarding-checklist'
 import { UpgradePrompt } from '@/components/upgrade-prompt'
+import { getWorkspaceStats } from '@/lib/analytics'
+import { getAuthenticatedContext } from '@/lib/authz'
+import { getWorkspaceUsage } from '@/lib/workspace'
 import { Activity, Key, Zap, TrendingUp, Settings, Plus } from 'lucide-react'
 
 interface UsageStats {
@@ -14,42 +15,70 @@ interface UsageStats {
   errorRate: number
 }
 
-export default function DashboardPage() {
-  const [stats, setStats] = useState<UsageStats>({
-    currentRequests: 0,
-    requestLimit: 1000,
-    totalCost: 0,
-    avgLatency: 0,
-    errorRate: 0
-  })
+export default async function DashboardPage() {
+  const auth = await getAuthenticatedContext()
+  if (!auth) {
+    redirect('/login?returnTo=%2Fdashboard')
+  }
 
-  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false)
+  const [stats, usage] = await Promise.all([
+    getWorkspaceStats(auth.workspaceId, 7),
+    getWorkspaceUsage(auth.workspaceId),
+  ])
 
-  useEffect(() => {
-    // Fetch usage stats
-    fetch('/api/analytics')
-      .then(res => res.json())
-      .then(data => {
-        const requests = data.totalRequests || 0
-        const limit = 1000 // Free tier limit
-        
-        setStats({
-          currentRequests: requests,
-          requestLimit: limit,
-          totalCost: data.totalCost || 0,
-          avgLatency: data.avgLatency || 0,
-          errorRate: data.errorRate || 0
-        })
+  const usageStats: UsageStats = {
+    currentRequests: stats.totalRequests,
+    requestLimit: usage?.requests.limit ?? 1000,
+    totalCost: stats.totalCost,
+    avgLatency: stats.avgLatency,
+    errorRate: 0,
+  }
 
-        // Show upgrade prompt if approaching or at limit
-        if (requests >= limit * 0.8) {
-          setShowUpgradePrompt(true)
-        }
-      })
-      .catch(err => console.error('Failed to load stats:', err))
-  }, [])
+  const showUpgradePrompt = usageStats.currentRequests >= usageStats.requestLimit * 0.8
+  const hasConnectedProvider = (usage?.providers.current ?? 0) > 0
+  const hasTenantKey = (usage?.apiKeys.current ?? 0) > 0
+  const hasSuccessfulRequest = usageStats.currentRequests > 0
+  const activationState = !hasConnectedProvider
+    ? {
+        badge: 'Next required step',
+        title: 'Workspace activation',
+        summary: 'Complete these steps to activate your workspace.',
+        description:
+          'Connect a runtime-backed provider, issue a tenant key, and complete your first successful call to activate the workspace.',
+        ctaLabel: 'Connect runtime provider',
+        ctaHref: '/dashboard/providers',
+      }
+    : !hasTenantKey
+    ? {
+        badge: 'Current step',
+        title: 'Workspace activation',
+        summary: 'Complete these steps to activate your workspace.',
+        description:
+          'Your provider is connected. Generate a tenant key next so your workspace can accept runtime-backed requests.',
+        ctaLabel: 'Generate tenant key',
+        ctaHref: '/dashboard/keys',
+      }
+    : !hasSuccessfulRequest
+    ? {
+        badge: 'Current step',
+        title: 'Workspace activation',
+        summary: 'Complete these steps to activate your workspace.',
+        description:
+          'Provider and tenant key are ready. Make your first successful runtime-backed call to complete activation.',
+        ctaLabel: 'View activation guide',
+        ctaHref: '/docs/quickstart',
+      }
+    : {
+        badge: 'Activation complete',
+        title: 'Workspace activation',
+        summary: 'Workspace activated and ready for scale.',
+        description:
+          'Your runtime-backed workflow is live. Track usage, review analytics, and expand your workspace with more providers or higher tiers.',
+        ctaLabel: 'View analytics',
+        ctaHref: '/dashboard/analytics',
+      }
 
-  const usagePercentage = (stats.currentRequests / stats.requestLimit) * 100
+  const usagePercentage = (usageStats.currentRequests / usageStats.requestLimit) * 100
   const isNearLimit = usagePercentage >= 80
   const isAtLimit = usagePercentage >= 100
 
@@ -94,27 +123,85 @@ export default function DashboardPage() {
       </nav>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
-          <p className="text-slate-400">Monitor your API usage and manage your workspace</p>
-        </div>
+        <section className="mb-8 overflow-hidden rounded-2xl border border-slate-800/60 bg-slate-900/60 p-6 shadow-2xl shadow-slate-950/20">
+          <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr] lg:items-center">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300/80">
+                {activationState.badge}
+              </p>
+              <h1 className="mt-3 text-3xl font-bold text-white">{activationState.title}</h1>
+              <p className="mt-2 text-lg font-medium text-slate-200">{activationState.summary}</p>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400">{activationState.description}</p>
+
+              <div className="mt-5 flex flex-wrap gap-3">
+                <Link
+                  href={activationState.ctaHref}
+                  className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-500"
+                >
+                  {activationState.ctaLabel}
+                </Link>
+                <Link
+                  href="/docs/quickstart"
+                  className="inline-flex items-center justify-center rounded-lg border border-slate-700 bg-slate-950/50 px-4 py-2 text-sm font-medium text-slate-200 transition hover:border-slate-600 hover:bg-slate-900"
+                >
+                  Activation docs
+                </Link>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Activation overview</p>
+              <div className="mt-4 space-y-3">
+                {[
+                  { label: 'Provider connected', complete: hasConnectedProvider },
+                  { label: 'Tenant key issued', complete: hasTenantKey },
+                  { label: 'First successful call', complete: hasSuccessfulRequest },
+                ].map(step => (
+                  <div key={step.label} className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900/70 px-4 py-3 text-sm">
+                    <span className="text-slate-300">{step.label}</span>
+                    <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${step.complete ? 'bg-green-500/10 text-green-300' : 'bg-slate-800 text-slate-400'}`}>
+                      {step.complete ? 'Complete' : 'Pending'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {!hasConnectedProvider && (
+          <div className="mb-6 rounded-xl border border-purple-500/30 bg-purple-500/10 p-5">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-white">Connect Provider First</h2>
+                <p className="mt-1 text-sm text-slate-300">
+                  Connect a runtime-backed provider, issue a tenant key, and complete your first successful call to activate the workspace.
+                </p>
+              </div>
+              <Link
+                href="/dashboard/providers"
+                className="inline-flex items-center justify-center rounded-lg bg-purple-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-purple-400"
+              >
+                Connect runtime provider
+              </Link>
+            </div>
+          </div>
+        )}
 
         {/* Upgrade Prompt */}
         {showUpgradePrompt && (
           <div className="mb-6">
             <UpgradePrompt
               type={isAtLimit ? 'limit-reached' : 'limit-warning'}
-              currentUsage={stats.currentRequests}
-              limit={stats.requestLimit}
-              onDismiss={() => setShowUpgradePrompt(false)}
+              currentUsage={usageStats.currentRequests}
+              limit={usageStats.requestLimit}
             />
           </div>
         )}
 
         {/* Onboarding Checklist */}
         <div className="mb-8">
-          <OnboardingChecklist />
+          <OnboardingChecklist workspaceId={auth.workspaceId} />
         </div>
 
         {/* Usage Overview */}
@@ -122,7 +209,7 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-white">Usage Overview</h2>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-slate-400">Free Plan</span>
+              <span className="text-sm text-slate-400">Free Plan · Secondary until activation is complete</span>
               <Link
                 href="/pricing"
                 className="text-sm text-blue-400 hover:text-blue-300 font-medium transition-colors"
@@ -151,10 +238,10 @@ export default function DashboardPage() {
               </div>
               <div className="mb-2">
                 <div className="text-2xl font-bold text-white mb-1">
-                  {stats.currentRequests.toLocaleString()}
+                  {usageStats.currentRequests.toLocaleString()}
                 </div>
                 <div className="text-sm text-slate-400">
-                  of {stats.requestLimit.toLocaleString()} requests
+                  of {usageStats.requestLimit.toLocaleString()} requests
                 </div>
               </div>
               <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
@@ -180,14 +267,14 @@ export default function DashboardPage() {
               </div>
               <div className="mb-2">
                 <div className="text-2xl font-bold text-white mb-1">
-                  ${stats.totalCost.toFixed(2)}
+                  ${usageStats.totalCost.toFixed(2)}
                 </div>
                 <div className="text-sm text-slate-400">
                   Total cost this month
                 </div>
               </div>
               <div className="text-xs text-slate-500">
-                Avg: ${(stats.totalCost / Math.max(stats.currentRequests, 1)).toFixed(4)}/req
+                Avg: ${(usageStats.totalCost / Math.max(usageStats.currentRequests, 1)).toFixed(4)}/req
               </div>
             </div>
 
@@ -200,15 +287,15 @@ export default function DashboardPage() {
               </div>
               <div className="mb-2">
                 <div className="text-2xl font-bold text-white mb-1">
-                  {stats.avgLatency.toFixed(0)}ms
+                  {usageStats.avgLatency.toFixed(0)}ms
                 </div>
                 <div className="text-sm text-slate-400">
                   Average latency
                 </div>
               </div>
               <div className="text-xs text-slate-500">
-                {stats.avgLatency < 500 ? 'Excellent' : stats.avgLatency < 1000 ? 'Good' : 'Needs attention'}
-              </div>
+                  {usageStats.avgLatency < 500 ? 'Excellent' : usageStats.avgLatency < 1000 ? 'Good' : 'Needs attention'}
+                </div>
             </div>
 
             {/* Error Rate Card */}
@@ -220,14 +307,14 @@ export default function DashboardPage() {
               </div>
               <div className="mb-2">
                 <div className="text-2xl font-bold text-white mb-1">
-                  {stats.errorRate.toFixed(1)}%
+                  {usageStats.errorRate.toFixed(1)}%
                 </div>
                 <div className="text-sm text-slate-400">
                   Error rate
                 </div>
               </div>
               <div className="text-xs text-slate-500">
-                {stats.errorRate < 1 ? 'Healthy' : stats.errorRate < 5 ? 'Monitor' : 'Action needed'}
+                {usageStats.errorRate < 1 ? 'Healthy' : usageStats.errorRate < 5 ? 'Monitor' : 'Action needed'}
               </div>
             </div>
           </div>
@@ -238,7 +325,7 @@ export default function DashboardPage() {
           <h2 className="text-xl font-semibold text-white mb-4">Quick Actions</h2>
           <div className="grid md:grid-cols-3 gap-4">
             <Link
-              href="/dashboard/keys"
+              href={hasConnectedProvider ? '/dashboard/keys' : '/dashboard/providers'}
               className="bg-slate-900/50 backdrop-blur-xl rounded-xl border border-slate-800/50 p-6 hover:border-blue-500/30 transition-all group"
             >
               <div className="flex items-center gap-4">
@@ -246,8 +333,14 @@ export default function DashboardPage() {
                   <Key className="w-6 h-6 text-blue-400" />
                 </div>
                 <div>
-                  <h3 className="text-white font-semibold mb-1">Generate API Key</h3>
-                  <p className="text-sm text-slate-400">Create a new key for your app</p>
+                  <h3 className="text-white font-semibold mb-1">
+                    {hasConnectedProvider ? 'Generate API Key' : 'Connect Provider First'}
+                  </h3>
+                  <p className="text-sm text-slate-400">
+                    {hasConnectedProvider
+                      ? 'Create a new tenant key for your app'
+                      : 'Connect a provider before generating tenant keys or making your first request'}
+                  </p>
                 </div>
               </div>
             </Link>
@@ -261,8 +354,8 @@ export default function DashboardPage() {
                   <Plus className="w-6 h-6 text-purple-400" />
                 </div>
                 <div>
-                  <h3 className="text-white font-semibold mb-1">Add Provider</h3>
-                  <p className="text-sm text-slate-400">Connect OpenAI, Anthropic, etc.</p>
+                  <h3 className="text-white font-semibold mb-1">Connect Provider</h3>
+                  <p className="text-sm text-slate-400">Connect OpenAI, Anthropic, and other CLIProxyAPIPlus-backed providers.</p>
                 </div>
               </div>
             </Link>

@@ -1,0 +1,55 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - navigation [ref=e3]:
+      - generic [ref=e5]:
+        - generic [ref=e6]
+        - generic [ref=e8]
+    - generic [ref=e15]:
+      - generic [ref=e16]:
+        - generic [ref=e17]: SaaS control plane for CLIProxyAPIPlus
+        - heading "Aiproxy gives your team a control plane for runtime-backed AI access." [level=1] [ref=e18]
+        - paragraph [ref=e19]: CLIProxyAPIPlus remains the runtime core. Aiproxy adds workspace onboarding, provider connections, tenant keys, entitlement controls, and operational visibility on top.
+        - generic [ref=e20]
+        - paragraph [ref=e23]: Connect providers, issue a tenant key, and complete the first successful call without exposing raw runtime complexity.
+      - generic [ref=e24]:
+        - generic [ref=e25]
+        - generic [ref=e29]
+        - generic [ref=e45]
+    - generic [ref=e49]:
+      - generic [ref=e50]:
+        - heading "How Aiproxy works" [level=2] [ref=e51]
+        - paragraph [ref=e52]: Understand the runtime core, the control plane, and the activation path before you scale usage.
+      - generic [ref=e53]:
+        - generic [ref=e54]
+        - generic [ref=e57]
+        - generic [ref=e60]
+        - generic [ref=e63]
+    - generic [ref=e67]:
+      - paragraph [ref=e68]: Pricing
+      - heading "Simple plans that match workspace growth" [level=2] [ref=e69]
+      - paragraph [ref=e70]: Start free while you validate the activation flow, then move to the pricing page when you need higher request volume, more provider slots, and expanded operational controls.
+      - generic [ref=e71]:
+        - link "View pricing" [ref=e72] [cursor=pointer]:
+          - /url: /pricing
+        - link "Start setup" [ref=e73] [cursor=pointer]:
+          - /url: /dashboard
+    - generic [ref=e75]:
+      - generic [ref=e76]:
+        - heading "Activation workflow" [level=2] [ref=e77]
+        - paragraph [ref=e78]: Connect provider, issue a tenant key, make your first successful request, and observe usage from one control plane.
+      - generic [ref=e79]:
+        - generic [ref=e80]
+        - generic [ref=e96]
+    - generic [ref=e108]:
+      - heading "Ready to activate your workspace?" [level=2] [ref=e109]
+      - paragraph [ref=e110]: Start setup when you are ready, or read the docs if you want to evaluate the control plane first.
+      - generic [ref=e111]:
+        - link "Start setup" [ref=e112] [cursor=pointer]:
+          - /url: /dashboard
+        - link "Read docs" [ref=e113] [cursor=pointer]:
+          - /url: /docs
+    - contentinfo [ref=e114]:
+      - generic [ref=e115]:
+        - generic [ref=e116]
+        - generic [ref=e152]: © 2026 Aiproxy. All rights reserved.
+  - alert [ref=e153]

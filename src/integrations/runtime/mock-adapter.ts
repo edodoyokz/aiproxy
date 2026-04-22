@@ -38,7 +38,6 @@ import {
   RuntimeStatus,
   ProviderConnectionStatus,
   HealthStatus,
-  ProviderType,
 } from './types'
 
 /**
@@ -46,9 +45,32 @@ import {
  * Simulates CLIProxyAPIPlus behavior with in-memory state
  */
 export class MockRuntimeAdapter implements IRuntimeAdapter {
-  private runtimes = new Map<string, any>()
-  private connections = new Map<string, any>()
-  private apiKeys = new Map<string, any>()
+  private runtimes = new Map<string, {
+    runtimeId: string
+    workspaceId: string
+    status: RuntimeStatus
+    endpoint: string
+    provisionedAt: Date
+    planTier: ProvisionRuntimeRequest['planTier']
+    region: string
+  }>()
+  private connections = new Map<string, {
+    connectionId: string
+    runtimeId: string
+    provider: ConnectProviderRequest['provider']
+    status: ProviderConnectionStatus
+    connectedAt: Date
+    config?: Record<string, unknown>
+  }>()
+  private apiKeys = new Map<string, {
+    keyId: string
+    key: string
+    runtimeId: string
+    workspaceId: string
+    keyName: string
+    scopes: string[]
+    issuedAt: Date
+  }>()
 
   async provisionRuntime(request: ProvisionRuntimeRequest): Promise<ProvisionRuntimeResponse> {
     // TODO: Replace with real API call
@@ -114,7 +136,7 @@ export class MockRuntimeAdapter implements IRuntimeAdapter {
     }
   }
 
-  async disconnectProvider(runtimeId: string, connectionId: string): Promise<void> {
+  async disconnectProvider(_runtimeId: string, connectionId: string): Promise<void> {
     // TODO: Replace with real API call
     // await client.providers.disconnect(runtimeId, connectionId)
 
@@ -164,6 +186,7 @@ export class MockRuntimeAdapter implements IRuntimeAdapter {
     // TODO: Replace with real API call
     // await client.apiKeys.revoke(runtimeId, keyId)
 
+    void runtimeId
     await this.delay(50)
     this.apiKeys.delete(keyId)
   }
@@ -172,6 +195,7 @@ export class MockRuntimeAdapter implements IRuntimeAdapter {
     // TODO: Replace with real API call
     // return await client.usage.sync(request)
 
+    void request
     await this.delay(100)
 
     // Mock: return empty events for now

@@ -10,11 +10,11 @@ export default function PricingPage() {
   const plans = [
     {
       name: 'Free',
-      description: 'Perfect for side projects and testing',
+      description: 'Try the hosted CLIProxyAPIPlus control plane with one workspace runtime',
       price: { monthly: 0, annual: 0 },
       features: [
-        '1,000 requests/month',
-        '2 API keys',
+        'Workspace entitlement on shared infrastructure',
+        '1 tenant API key',
         '1 provider connection',
         'Basic analytics',
         'Community support',
@@ -30,11 +30,11 @@ export default function PricingPage() {
     },
     {
       name: 'Starter',
-      description: 'For growing products and teams',
+      description: 'For active users who need more providers and stronger runtime operations',
       price: { monthly: 29, annual: 290 },
       features: [
-        '50,000 requests/month',
-        '10 API keys',
+        'Higher quota entitlement',
+        '10 tenant API keys',
         '3 provider connections',
         'Advanced analytics',
         'Email support',
@@ -52,12 +52,12 @@ export default function PricingPage() {
     },
     {
       name: 'Pro',
-      description: 'For production apps at scale',
+      description: 'For production workloads that need broad provider access and premium operations',
       price: { monthly: 99, annual: 990 },
       features: [
-        'Unlimited requests',
-        '50 API keys',
-        'Unlimited providers',
+        'Highest quota entitlement',
+        '50 tenant API keys',
+        'Multi-provider workspace runtime',
         'Real-time analytics',
         'Priority support',
         '90-day log retention',
@@ -108,7 +108,7 @@ export default function PricingPage() {
             Simple, transparent pricing
           </h1>
           <p className="text-xl text-slate-400 mb-8 max-w-2xl mx-auto">
-            Start free, scale as you grow. No hidden fees, no surprises.
+            Subscription tiers package the CLIProxyAPIPlus runtime experience into a hosted SaaS control plane.
           </p>
 
           {/* Billing Toggle */}

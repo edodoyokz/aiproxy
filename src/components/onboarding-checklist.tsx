@@ -24,29 +24,29 @@ export function OnboardingChecklist({ workspaceId, onComplete }: OnboardingCheck
   const [items, setItems] = useState<ChecklistItem[]>([
     {
       id: 'create-workspace',
-      title: 'Create your workspace',
-      description: 'Set up your first workspace to organize your API keys',
+      title: 'Create your workspace runtime',
+      description: 'Provision the workspace runtime that will host providers, tenant keys, and requests.',
       completed: false,
-      action: { label: 'Create workspace', href: '/dashboard/workspaces/new' }
+      action: { label: 'View dashboard', href: '/dashboard' }
     },
     {
       id: 'connect-provider',
-      title: 'Connect an AI provider',
-      description: 'Add your OpenAI, Anthropic, or other provider API key',
+      title: 'Connect an AI provider first',
+      description: 'Required before you can generate a tenant key and make your first successful call.',
       completed: false,
-      action: { label: 'Add provider', href: '/dashboard/providers' }
+      action: { label: 'Connect provider', href: '/dashboard/providers' }
     },
     {
       id: 'generate-key',
       title: 'Generate your API key',
-      description: 'Create an Aiproxy API key to use in your application',
+      description: 'Create an Aiproxy tenant API key after a provider is connected to your runtime.',
       completed: false,
       action: { label: 'Generate key', href: '/dashboard/keys' }
     },
     {
       id: 'test-request',
-      title: 'Make your first request',
-      description: 'Test your setup with a sample API call',
+      title: 'Make your first successful runtime-backed request',
+      description: 'Send a successful request through the workspace runtime to complete activation.',
       completed: false,
       action: { label: 'View docs', href: '/docs/quickstart' }
     }
@@ -55,7 +55,6 @@ export function OnboardingChecklist({ workspaceId, onComplete }: OnboardingCheck
   const [isExpanded, setIsExpanded] = useState(true)
 
   useEffect(() => {
-    // Load checklist progress from API
     if (workspaceId) {
       fetch(`/api/onboarding/progress?workspaceId=${workspaceId}`)
         .then(res => res.json())
@@ -75,6 +74,7 @@ export function OnboardingChecklist({ workspaceId, onComplete }: OnboardingCheck
   const totalCount = items.length
   const progress = (completedCount / totalCount) * 100
   const isComplete = completedCount === totalCount
+  const nextItem = items.find(item => !item.completed)
 
   useEffect(() => {
     if (isComplete && onComplete) {
@@ -87,37 +87,66 @@ export function OnboardingChecklist({ workspaceId, onComplete }: OnboardingCheck
   }
 
   return (
-    <div className="bg-slate-900/50 backdrop-blur-xl rounded-xl border border-slate-800/50 overflow-hidden">
+    <div className="overflow-hidden rounded-2xl border border-slate-800/60 bg-slate-900/60 backdrop-blur-xl shadow-2xl shadow-slate-950/20">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full px-6 py-4 flex items-center justify-between hover:bg-slate-800/30 transition-colors"
+        className="w-full px-6 py-5 transition-colors hover:bg-slate-800/30"
       >
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
-            {isComplete ? (
-              <Check className="w-5 h-5 text-white" />
-            ) : (
-              <span className="text-white font-bold text-sm">{completedCount}/{totalCount}</span>
-            )}
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 shadow-lg shadow-blue-500/20">
+              {isComplete ? (
+                <Check className="h-5 w-5 text-white" />
+              ) : (
+                <span className="text-sm font-bold text-white">{completedCount}/{totalCount}</span>
+              )}
+            </div>
+            <div className="text-left">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300/80">
+                Workspace activation checklist
+              </p>
+              <h3 className="mt-1 text-lg font-semibold text-white">
+                {isComplete ? 'Activation complete' : 'Get started with Aiproxy'}
+              </h3>
+              <p className="mt-1 text-sm text-slate-400">
+                {isComplete
+                  ? 'Workspace activated. You can now focus on usage, analytics, and scaling.'
+                  : `${completedCount} of ${totalCount} steps completed`}
+              </p>
+            </div>
           </div>
-          <div className="text-left">
-            <h3 className="text-white font-semibold">
-              {isComplete ? 'Setup complete! 🎉' : 'Get started with Aiproxy'}
-            </h3>
-            <p className="text-sm text-slate-400">
-              {isComplete 
-                ? 'You\'re all set to build with AI' 
-                : `${completedCount} of ${totalCount} steps completed`}
-            </p>
-          </div>
+          <ChevronRight className={`h-5 w-5 text-slate-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
         </div>
-        <ChevronRight className={`w-5 h-5 text-slate-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
       </button>
 
       {isExpanded && (
-        <div className="px-6 pb-6">
-          {/* Progress Bar */}
-          <div className="mb-6">
+        <div className="space-y-6 px-6 pb-6">
+          <div className="rounded-xl border border-slate-800/60 bg-slate-950/50 p-4">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Current step</p>
+                <p className="mt-1 text-sm font-medium text-white">
+                  {nextItem ? nextItem.title : 'Workspace activated'}
+                </p>
+              </div>
+              {!isComplete && nextItem?.action && (
+                <Link
+                  href={nextItem.action.href}
+                  className="inline-flex items-center gap-2 rounded-lg bg-blue-500 px-3 py-2 text-sm font-medium text-white transition hover:bg-blue-400"
+                >
+                  {nextItem.action.label}
+                  <ChevronRight className="h-4 w-4" />
+                </Link>
+              )}
+            </div>
+            <p className="text-sm text-slate-400">
+              {isComplete
+                ? 'Activation complete. Your workspace is ready for runtime-backed requests.'
+                : nextItem?.description ?? 'Complete the remaining steps to activate your workspace.'}
+            </p>
+          </div>
+
+          <div>
             <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
               <div 
                 className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 transition-all duration-500"
@@ -126,24 +155,31 @@ export function OnboardingChecklist({ workspaceId, onComplete }: OnboardingCheck
             </div>
           </div>
 
-          {/* Checklist Items */}
           <div className="space-y-3">
             {items.map((item, index) => (
               <div
                 key={item.id}
                 className={`flex items-start gap-4 p-4 rounded-lg border transition-all ${
                   item.completed
-                    ? 'bg-slate-800/30 border-slate-700/50'
-                    : 'bg-slate-800/50 border-slate-700 hover:border-blue-500/30'
+                    ? 'border-slate-700/50 bg-slate-800/30'
+                    : item.id === nextItem?.id
+                    ? 'border-blue-500/40 bg-blue-500/10 shadow-lg shadow-blue-950/20'
+                    : 'border-slate-700 bg-slate-800/50 hover:border-blue-500/30'
                 }`}
               >
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                <div className={`mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full ${
                   item.completed
-                    ? 'bg-green-500/20 border-2 border-green-500'
-                    : 'bg-slate-700 border-2 border-slate-600'
+                    ? 'border-2 border-green-500 bg-green-500/20'
+                    : item.id === nextItem?.id
+                    ? 'border-2 border-blue-400 bg-blue-500/20'
+                    : 'border-2 border-slate-600 bg-slate-700'
                 }`}>
-                  {item.completed && <Check className="w-4 h-4 text-green-500" />}
-                  {!item.completed && <span className="text-xs text-slate-400">{index + 1}</span>}
+                  {item.completed && <Check className="h-4 w-4 text-green-500" />}
+                  {!item.completed && (
+                    <span className={`text-xs ${item.id === nextItem?.id ? 'text-blue-200' : 'text-slate-400'}`}>
+                      {index + 1}
+                    </span>
+                  )}
                 </div>
 
                 <div className="flex-1 min-w-0">
@@ -155,6 +191,11 @@ export function OnboardingChecklist({ workspaceId, onComplete }: OnboardingCheck
                   <p className="text-sm text-slate-400 mb-3">
                     {item.description}
                   </p>
+                  {!item.completed && item.id === nextItem?.id && (
+                    <p className="mb-3 text-xs font-medium uppercase tracking-[0.18em] text-blue-300">
+                      Next required step
+                    </p>
+                  )}
                   {!item.completed && item.action && (
                     <Link
                       href={item.action.href}
@@ -170,9 +211,9 @@ export function OnboardingChecklist({ workspaceId, onComplete }: OnboardingCheck
           </div>
 
           {isComplete && (
-            <div className="mt-6 p-4 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/30 rounded-lg">
+            <div className="mt-6 rounded-xl border border-blue-500/30 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 p-4">
               <p className="text-sm text-slate-300 mb-3">
-                🚀 Ready to scale? Check out our Starter and Pro plans for advanced features.
+                🚀 Workspace activated. Check out our Starter and Pro plans for advanced features.
               </p>
               <Link
                 href="/pricing"

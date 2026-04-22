@@ -59,7 +59,7 @@ export default function DocsPage() {
             <section id="quickstart">
               <h1 className="text-4xl font-bold text-white mb-4">Quickstart</h1>
               <p className="text-lg text-slate-400 mb-8">
-                Get started with Aiproxy in under 2 minutes.
+                Get started with the Aiproxy control plane in under 10 minutes.
               </p>
 
               <div className="space-y-6">
@@ -72,23 +72,23 @@ export default function DocsPage() {
                 </div>
 
                 <div className="bg-slate-900/50 backdrop-blur-xl rounded-xl border border-slate-800/50 p-6">
-                  <h3 className="text-xl font-semibold text-white mb-3">2. Add your provider API key</h3>
+                  <h3 className="text-xl font-semibold text-white mb-3">2. Connect a provider to your workspace runtime</h3>
                   <p className="text-slate-400 mb-4">
-                    Connect your OpenAI, Anthropic, or other provider API key in the dashboard.
+                    Aiproxy provisions a CLIProxyAPIPlus-backed runtime for your workspace, then lets you connect providers through the dashboard.
                   </p>
                 </div>
 
                 <div className="bg-slate-900/50 backdrop-blur-xl rounded-xl border border-slate-800/50 p-6">
-                  <h3 className="text-xl font-semibold text-white mb-3">3. Generate an Aiproxy API key</h3>
+                  <h3 className="text-xl font-semibold text-white mb-3">3. Generate an Aiproxy tenant API key</h3>
                   <p className="text-slate-400 mb-4">
-                    Create an API key to use in your application.
+                    Create a tenant API key that routes into your workspace runtime.
                   </p>
                 </div>
 
                 <div className="bg-slate-900/50 backdrop-blur-xl rounded-xl border border-slate-800/50 p-6">
                   <h3 className="text-xl font-semibold text-white mb-3">4. Make your first request</h3>
                   <p className="text-slate-400 mb-4">
-                    Use the OpenAI SDK with your Aiproxy key:
+                      Use the OpenAI SDK with your Aiproxy key after provider onboarding is complete:
                   </p>
                   <div className="bg-slate-950 rounded-lg p-4 overflow-x-auto">
                     <pre className="text-sm text-slate-300 font-mono">
@@ -131,12 +131,15 @@ console.log(response.choices[0].message.content)`}
             {/* Providers */}
             <section id="providers">
               <h2 className="text-3xl font-bold text-white mb-4">Supported Providers</h2>
+              <p className="text-slate-400 mb-4">
+                Aiproxy inherits provider breadth from CLIProxyAPIPlus. The control plane manages onboarding, entitlement, and runtime state for those providers.
+              </p>
               <div className="grid md:grid-cols-2 gap-4">
                 {['OpenAI', 'Anthropic', 'Google AI', 'Cohere'].map((provider) => (
                   <div key={provider} className="bg-slate-900/50 backdrop-blur-xl rounded-xl border border-slate-800/50 p-6">
                     <h3 className="text-lg font-semibold text-white mb-2">{provider}</h3>
                     <p className="text-slate-400 text-sm">
-                      Full support for all {provider} models and features.
+                      Provider connection is managed through your workspace runtime and surfaced through the Aiproxy control plane.
                     </p>
                   </div>
                 ))}

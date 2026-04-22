@@ -1,15 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getWorkspaceStats } from '@/lib/analytics'
+import { requireAuthenticatedContext } from '@/lib/authz'
 import { getWorkspaceUsage } from '@/lib/workspace'
 
 export async function GET(request: NextRequest) {
   try {
-    const workspaceId = request.headers.get('x-workspace-id')
+    const { workspaceId } = await requireAuthenticatedContext()
     const days = parseInt(request.nextUrl.searchParams.get('days') || '7')
-    
-    if (!workspaceId) {
-      return NextResponse.json({ error: 'Workspace ID required' }, { status: 400 })
-    }
 
     const [stats, usage] = await Promise.all([
       getWorkspaceStats(workspaceId, days),
@@ -21,6 +18,10 @@ export async function GET(request: NextRequest) {
       usage,
     })
   } catch (error) {
+    if (error instanceof Error && error.message === 'Unauthorized') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     return NextResponse.json({ error: 'Failed to fetch analytics' }, { status: 500 })
   }
 }

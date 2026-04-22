@@ -1,0 +1,80 @@
+- generic [active] [ref=e1]:
+  - alert [ref=e153]
+  - generic [ref=e154]:
+    - navigation [ref=e155]:
+      - generic [ref=e157]:
+        - link "AI Aiproxy" [ref=e158] [cursor=pointer]:
+          - /url: /
+          - generic [ref=e159]: AI
+          - text: Aiproxy
+        - generic [ref=e160]:
+          - link "Dashboard" [ref=e161] [cursor=pointer]:
+            - /url: /dashboard
+          - link "Pricing" [ref=e162] [cursor=pointer]:
+            - /url: /pricing
+          - link "Get Started" [ref=e163] [cursor=pointer]:
+            - /url: /dashboard
+    - generic [ref=e165]:
+      - generic [ref=e167]:
+        - heading "Documentation" [level=3] [ref=e168]
+        - navigation [ref=e169]:
+          - link "Quickstart" [ref=e170] [cursor=pointer]:
+            - /url: "#quickstart"
+          - link "Authentication" [ref=e171] [cursor=pointer]:
+            - /url: "#authentication"
+          - link "Providers" [ref=e172] [cursor=pointer]:
+            - /url: "#providers"
+          - link "Examples" [ref=e173] [cursor=pointer]:
+            - /url: "#examples"
+      - generic [ref=e174]:
+        - generic [ref=e175]:
+          - heading "Quickstart" [level=1] [ref=e176]
+          - paragraph [ref=e177]: Get started with the Aiproxy control plane in under 10 minutes.
+          - generic [ref=e178]:
+            - generic [ref=e179]:
+              - heading "1. Create an account" [level=3] [ref=e180]
+              - paragraph [ref=e181]:
+                - text: Sign up for a free account at
+                - link "dashboard" [ref=e182] [cursor=pointer]:
+                  - /url: /dashboard
+                - text: . No credit card required.
+            - generic [ref=e183]:
+              - heading "2. Connect a provider to your workspace runtime" [level=3] [ref=e184]
+              - paragraph [ref=e185]: Aiproxy provisions a CLIProxyAPIPlus-backed runtime for your workspace, then lets you connect providers through the dashboard.
+            - generic [ref=e186]:
+              - heading "3. Generate an Aiproxy tenant API key" [level=3] [ref=e187]
+              - paragraph [ref=e188]: Create a tenant API key that routes into your workspace runtime.
+            - generic [ref=e189]:
+              - heading "4. Make your first request" [level=3] [ref=e190]
+              - paragraph [ref=e191]: "Use the OpenAI SDK with your Aiproxy key after provider onboarding is complete:"
+              - generic [ref=e193]: "import OpenAI from 'openai' const client = new OpenAI({ apiKey: process.env.AIPROXY_KEY, baseURL: 'https://api.aiproxy.io/v1' }) const response = await client.chat.completions.create({ model: 'gpt-4', messages: [ { role: 'user', content: 'Hello, world!' } ] }) console.log(response.choices[0].message.content)"
+        - generic [ref=e194]:
+          - heading "Authentication" [level=2] [ref=e195]
+          - generic [ref=e196]:
+            - paragraph [ref=e197]: "Aiproxy uses API keys for authentication. Include your key in the Authorization header:"
+            - generic [ref=e199]: "Authorization: Bearer YOUR_AIPROXY_KEY"
+        - generic [ref=e200]:
+          - heading "Supported Providers" [level=2] [ref=e201]
+          - paragraph [ref=e202]: Aiproxy inherits provider breadth from CLIProxyAPIPlus. The control plane manages onboarding, entitlement, and runtime state for those providers.
+          - generic [ref=e203]:
+            - generic [ref=e204]:
+              - heading "OpenAI" [level=3] [ref=e205]
+              - paragraph [ref=e206]: Provider connection is managed through your workspace runtime and surfaced through the Aiproxy control plane.
+            - generic [ref=e207]:
+              - heading "Anthropic" [level=3] [ref=e208]
+              - paragraph [ref=e209]: Provider connection is managed through your workspace runtime and surfaced through the Aiproxy control plane.
+            - generic [ref=e210]:
+              - heading "Google AI" [level=3] [ref=e211]
+              - paragraph [ref=e212]: Provider connection is managed through your workspace runtime and surfaced through the Aiproxy control plane.
+            - generic [ref=e213]:
+              - heading "Cohere" [level=3] [ref=e214]
+              - paragraph [ref=e215]: Provider connection is managed through your workspace runtime and surfaced through the Aiproxy control plane.
+        - generic [ref=e216]:
+          - heading "Examples" [level=2] [ref=e217]
+          - generic [ref=e218]:
+            - generic [ref=e219]:
+              - heading "Streaming responses" [level=3] [ref=e220]
+              - generic [ref=e222]: "const stream = await client.chat.completions.create({ model: 'gpt-4', messages: [{ role: 'user', content: 'Tell me a story' }], stream: true }) for await (const chunk of stream) { process.stdout.write(chunk.choices[0]?.delta?.content || '') }"
+            - generic [ref=e223]:
+              - heading "Error handling" [level=3] [ref=e224]
+              - generic [ref=e226]: "try { const response = await client.chat.completions.create({ model: 'gpt-4', messages: [{ role: 'user', content: 'Hello!' }] }) } catch (error) { if (error.status === 429) { console.error('Rate limit exceeded') } else { console.error('API error:', error.message) } }"

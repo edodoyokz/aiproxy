@@ -1,23 +1,5 @@
 import { prisma } from './db'
-import { PlanTier } from '@prisma/client'
-
-const PLAN_LIMITS = {
-  FREE: {
-    maxApiKeys: 2,
-    maxRequests: 1000,
-    maxProviders: 1,
-  },
-  STARTER: {
-    maxApiKeys: 10,
-    maxRequests: 50000,
-    maxProviders: 3,
-  },
-  PRO: {
-    maxApiKeys: 50,
-    maxRequests: -1, // unlimited
-    maxProviders: -1, // unlimited
-  },
-}
+import { getEffectiveEntitlement, hasRemainingRequests, canConnectProvider, canIssueApiKey } from './entitlements'
 
 export async function validateWorkspaceLimit(
   workspaceId: string,
@@ -27,7 +9,10 @@ export async function validateWorkspaceLimit(
     where: { id: workspaceId },
     include: {
       apiKeys: true,
-      providers: true,
+      entitlement: true,
+      providers: {
+        where: { isActive: true },
+      },
       requests: {
         where: {
           createdAt: {
@@ -46,30 +31,40 @@ export async function validateWorkspaceLimit(
     return { allowed: false, reason: 'Workspace is suspended' }
   }
 
-  const limits = PLAN_LIMITS[workspace.planTier]
+  const entitlement = getEffectiveEntitlement({
+    planTier: workspace.planTier,
+    overrides: workspace.entitlement
+      ? {
+          maxApiKeys: workspace.entitlement.maxApiKeys,
+          maxProviders: workspace.entitlement.maxProviders,
+          maxRequests: workspace.entitlement.maxRequests,
+          retentionDays: workspace.entitlement.retentionDays,
+        }
+      : undefined,
+  })
 
   switch (limitType) {
     case 'apiKeys':
-      if (workspace.apiKeys.length >= limits.maxApiKeys) {
+      if (!canIssueApiKey(entitlement, workspace.apiKeys.length)) {
         return {
           allowed: false,
-          reason: `${workspace.planTier} plan allows maximum ${limits.maxApiKeys} API keys`,
+          reason: `${entitlement.planTier} plan allows maximum ${entitlement.maxApiKeys} API keys`,
         }
       }
       break
     case 'providers':
-      if (limits.maxProviders !== -1 && workspace.providers.length >= limits.maxProviders) {
+      if (!canConnectProvider(entitlement, workspace.providers.length)) {
         return {
           allowed: false,
-          reason: `${workspace.planTier} plan allows maximum ${limits.maxProviders} providers`,
+          reason: `${entitlement.planTier} plan allows maximum ${entitlement.maxProviders} providers`,
         }
       }
       break
     case 'requests':
-      if (limits.maxRequests !== -1 && workspace.requests.length >= limits.maxRequests) {
+      if (!hasRemainingRequests(entitlement, workspace.requests.length)) {
         return {
           allowed: false,
-          reason: `${workspace.planTier} plan monthly limit of ${limits.maxRequests} requests exceeded`,
+          reason: `${entitlement.planTier} plan monthly limit of ${entitlement.maxRequests} requests exceeded`,
         }
       }
       break
@@ -83,6 +78,7 @@ export async function getWorkspaceUsage(workspaceId: string) {
     where: { id: workspaceId },
     include: {
       apiKeys: { where: { isActive: true } },
+      entitlement: true,
       providers: { where: { isActive: true } },
       requests: {
         where: {
@@ -96,21 +92,36 @@ export async function getWorkspaceUsage(workspaceId: string) {
 
   if (!workspace) return null
 
-  const limits = PLAN_LIMITS[workspace.planTier]
+  const entitlement = getEffectiveEntitlement({
+    planTier: workspace.planTier,
+    overrides: workspace.entitlement
+      ? {
+          maxApiKeys: workspace.entitlement.maxApiKeys,
+          maxProviders: workspace.entitlement.maxProviders,
+          maxRequests: workspace.entitlement.maxRequests,
+          retentionDays: workspace.entitlement.retentionDays,
+        }
+      : undefined,
+  })
 
   return {
-    planTier: workspace.planTier,
+    planTier: entitlement.planTier,
     apiKeys: {
       current: workspace.apiKeys.length,
-      limit: limits.maxApiKeys,
+      limit: entitlement.maxApiKeys,
     },
     providers: {
       current: workspace.providers.length,
-      limit: limits.maxProviders,
+      limit: entitlement.maxProviders,
     },
     requests: {
       current: workspace.requests.length,
-      limit: limits.maxRequests,
+      limit: entitlement.maxRequests,
     },
   }
+}
+
+export async function checkWorkspaceLimit(workspaceId: string): Promise<boolean> {
+  const result = await validateWorkspaceLimit(workspaceId, 'requests')
+  return result.allowed
 }

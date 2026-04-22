@@ -6,11 +6,11 @@
  */
 
 export enum RuntimeStatus {
-  PROVISIONING = 'provisioning',
-  ACTIVE = 'active',
-  SUSPENDED = 'suspended',
-  FAILED = 'failed',
-  TERMINATED = 'terminated',
+  PROVISIONING = 'PROVISIONING',
+  ACTIVE = 'ACTIVE',
+  SUSPENDED = 'SUSPENDED',
+  FAILED = 'FAILED',
+  TERMINATED = 'TERMINATED',
 }
 
 export enum ProviderType {
@@ -22,10 +22,10 @@ export enum ProviderType {
 }
 
 export enum ProviderConnectionStatus {
-  PENDING = 'pending',
-  CONNECTED = 'connected',
-  FAILED = 'failed',
-  DISCONNECTED = 'disconnected',
+  PENDING = 'PENDING',
+  CONNECTED = 'CONNECTED',
+  FAILED = 'FAILED',
+  DISCONNECTED = 'DISCONNECTED',
 }
 
 export enum HealthStatus {

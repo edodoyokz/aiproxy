@@ -1,0 +1,243 @@
+- generic [active] [ref=e1]:
+  - alert [ref=e153]
+  - generic [ref=e154]:
+    - navigation [ref=e155]:
+      - generic [ref=e157]:
+        - link "AI Aiproxy" [ref=e158] [cursor=pointer]:
+          - /url: /
+          - generic [ref=e159]: AI
+          - text: Aiproxy
+        - generic [ref=e160]:
+          - link "Dashboard" [ref=e161] [cursor=pointer]:
+            - /url: /dashboard
+          - link "Docs" [ref=e162] [cursor=pointer]:
+            - /url: /docs
+          - link "Get Started" [ref=e163] [cursor=pointer]:
+            - /url: /dashboard
+    - generic [ref=e164]:
+      - generic [ref=e165]:
+        - heading "Simple, transparent pricing" [level=1] [ref=e166]
+        - paragraph [ref=e167]: Subscription tiers package the CLIProxyAPIPlus runtime experience into a hosted SaaS control plane.
+        - generic [ref=e168]:
+          - button "Monthly" [ref=e169] [cursor=pointer]
+          - button "AnnualSave 17%" [ref=e170] [cursor=pointer]
+      - generic [ref=e171]:
+        - generic [ref=e172]:
+          - generic [ref=e173]:
+            - heading "Free" [level=3] [ref=e174]
+            - paragraph [ref=e175]: Try the hosted CLIProxyAPIPlus control plane with one workspace runtime
+          - generic [ref=e178]: $0
+          - link "Start Free" [ref=e179] [cursor=pointer]:
+            - /url: /dashboard
+          - generic [ref=e180]:
+            - generic [ref=e181]:
+              - paragraph [ref=e182]: Included
+              - list [ref=e183]:
+                - listitem [ref=e184]:
+                  - img [ref=e185]
+                  - text: Workspace entitlement on shared infrastructure
+                - listitem [ref=e187]:
+                  - img [ref=e188]
+                  - text: 1 tenant API key
+                - listitem [ref=e190]:
+                  - img [ref=e191]
+                  - text: 1 provider connection
+                - listitem [ref=e193]:
+                  - img [ref=e194]
+                  - text: Basic analytics
+                - listitem [ref=e196]:
+                  - img [ref=e197]
+                  - text: Community support
+                - listitem [ref=e199]:
+                  - img [ref=e200]
+                  - text: 7-day log retention
+            - generic [ref=e202]:
+              - paragraph [ref=e203]: Not included
+              - list [ref=e204]:
+                - listitem [ref=e205]: ×No custom rate limits
+                - listitem [ref=e206]: ×No webhook notifications
+                - listitem [ref=e207]: ×No SSO/SAML
+        - generic [ref=e208]:
+          - generic [ref=e209]: Most Popular
+          - generic [ref=e210]:
+            - heading "Starter" [level=3] [ref=e211]
+            - paragraph [ref=e212]: For active users who need more providers and stronger runtime operations
+          - generic [ref=e214]:
+            - generic [ref=e215]: $29
+            - generic [ref=e216]: /mo
+          - link "Start 14-day Trial" [ref=e217] [cursor=pointer]:
+            - /url: /dashboard
+          - generic [ref=e218]:
+            - generic [ref=e219]:
+              - paragraph [ref=e220]: Included
+              - list [ref=e221]:
+                - listitem [ref=e222]:
+                  - img [ref=e223]
+                  - text: Higher quota entitlement
+                - listitem [ref=e225]:
+                  - img [ref=e226]
+                  - text: 10 tenant API keys
+                - listitem [ref=e228]:
+                  - img [ref=e229]
+                  - text: 3 provider connections
+                - listitem [ref=e231]:
+                  - img [ref=e232]
+                  - text: Advanced analytics
+                - listitem [ref=e234]:
+                  - img [ref=e235]
+                  - text: Email support
+                - listitem [ref=e237]:
+                  - img [ref=e238]
+                  - text: 30-day log retention
+                - listitem [ref=e240]:
+                  - img [ref=e241]
+                  - text: Custom rate limits
+                - listitem [ref=e243]:
+                  - img [ref=e244]
+                  - text: Webhook notifications
+            - generic [ref=e246]:
+              - paragraph [ref=e247]: Not included
+              - list [ref=e248]:
+                - listitem [ref=e249]: ×No SSO/SAML
+                - listitem [ref=e250]: ×No dedicated runtime
+                - listitem [ref=e251]: ×No SLA guarantee
+        - generic [ref=e252]:
+          - generic [ref=e253]:
+            - heading "Pro" [level=3] [ref=e254]
+            - paragraph [ref=e255]: For production workloads that need broad provider access and premium operations
+          - generic [ref=e257]:
+            - generic [ref=e258]: $99
+            - generic [ref=e259]: /mo
+          - link "Start 14-day Trial" [ref=e260] [cursor=pointer]:
+            - /url: /dashboard
+          - generic [ref=e262]:
+            - paragraph [ref=e263]: Included
+            - list [ref=e264]:
+              - listitem [ref=e265]:
+                - img [ref=e266]
+                - text: Highest quota entitlement
+              - listitem [ref=e268]:
+                - img [ref=e269]
+                - text: 50 tenant API keys
+              - listitem [ref=e271]:
+                - img [ref=e272]
+                - text: Multi-provider workspace runtime
+              - listitem [ref=e274]:
+                - img [ref=e275]
+                - text: Real-time analytics
+              - listitem [ref=e277]:
+                - img [ref=e278]
+                - text: Priority support
+              - listitem [ref=e280]:
+                - img [ref=e281]
+                - text: 90-day log retention
+              - listitem [ref=e283]:
+                - img [ref=e284]
+                - text: Custom rate limits
+              - listitem [ref=e286]:
+                - img [ref=e287]
+                - text: Webhook notifications
+              - listitem [ref=e289]:
+                - img [ref=e290]
+                - text: SSO & SAML
+              - listitem [ref=e292]:
+                - img [ref=e293]
+                - text: Dedicated runtime
+              - listitem [ref=e295]:
+                - img [ref=e296]
+                - text: 99.9% SLA guarantee
+              - listitem [ref=e298]:
+                - img [ref=e299]
+                - text: Custom contracts available
+      - generic [ref=e301]:
+        - heading "Compare all features" [level=2] [ref=e302]
+        - table [ref=e304]:
+          - rowgroup [ref=e305]:
+            - row "Feature Free Starter Pro" [ref=e306]:
+              - columnheader "Feature" [ref=e307]
+              - columnheader "Free" [ref=e308]
+              - columnheader "Starter" [ref=e309]
+              - columnheader "Pro" [ref=e310]
+          - rowgroup [ref=e311]:
+            - row "Monthly requests 1,000 50,000 Unlimited" [ref=e312]:
+              - cell "Monthly requests" [ref=e313]
+              - cell "1,000" [ref=e314]
+              - cell "50,000" [ref=e315]
+              - cell "Unlimited" [ref=e316]
+            - row "API keys 2 10 50" [ref=e317]:
+              - cell "API keys" [ref=e318]
+              - cell "2" [ref=e319]
+              - cell "10" [ref=e320]
+              - cell "50" [ref=e321]
+            - row "Provider connections 1 3 Unlimited" [ref=e322]:
+              - cell "Provider connections" [ref=e323]
+              - cell "1" [ref=e324]
+              - cell "3" [ref=e325]
+              - cell "Unlimited" [ref=e326]
+            - row "Analytics Basic Advanced Real-time" [ref=e327]:
+              - cell "Analytics" [ref=e328]
+              - cell "Basic" [ref=e329]
+              - cell "Advanced" [ref=e330]
+              - cell "Real-time" [ref=e331]
+            - row "Support Community Email Priority" [ref=e332]:
+              - cell "Support" [ref=e333]
+              - cell "Community" [ref=e334]
+              - cell "Email" [ref=e335]
+              - cell "Priority" [ref=e336]
+            - row "Log retention 7 days 30 days 90 days" [ref=e337]:
+              - cell "Log retention" [ref=e338]
+              - cell "7 days" [ref=e339]
+              - cell "30 days" [ref=e340]
+              - cell "90 days" [ref=e341]
+            - row "Custom rate limits —" [ref=e342]:
+              - cell "Custom rate limits" [ref=e343]
+              - cell "—" [ref=e344]
+              - cell [ref=e345]:
+                - img [ref=e346]
+              - cell [ref=e348]:
+                - img [ref=e349]
+            - row "Webhook notifications —" [ref=e351]:
+              - cell "Webhook notifications" [ref=e352]
+              - cell "—" [ref=e353]
+              - cell [ref=e354]:
+                - img [ref=e355]
+              - cell [ref=e357]:
+                - img [ref=e358]
+            - row "SSO & SAML — —" [ref=e360]:
+              - cell "SSO & SAML" [ref=e361]
+              - cell "—" [ref=e362]
+              - cell "—" [ref=e363]
+              - cell [ref=e364]:
+                - img [ref=e365]
+            - row "Dedicated runtime — —" [ref=e367]:
+              - cell "Dedicated runtime" [ref=e368]
+              - cell "—" [ref=e369]
+              - cell "—" [ref=e370]
+              - cell [ref=e371]:
+                - img [ref=e372]
+            - row "SLA guarantee — —" [ref=e374]:
+              - cell "SLA guarantee" [ref=e375]
+              - cell "—" [ref=e376]
+              - cell "—" [ref=e377]
+              - cell [ref=e378]:
+                - img [ref=e379]
+      - generic [ref=e381]:
+        - heading "Frequently asked questions" [level=2] [ref=e382]
+        - generic [ref=e383]:
+          - generic [ref=e384]:
+            - heading "Can I change plans anytime?" [level=3] [ref=e385]
+            - paragraph [ref=e386]: Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately, and we'll prorate any charges.
+          - generic [ref=e387]:
+            - heading "What happens if I exceed my request limit?" [level=3] [ref=e388]
+            - paragraph [ref=e389]: On the Free plan, requests will be throttled once you hit the limit. On paid plans, you can set up overage billing or automatic upgrades.
+          - generic [ref=e390]:
+            - heading "Do you offer refunds?" [level=3] [ref=e391]
+            - paragraph [ref=e392]: Yes, we offer a 30-day money-back guarantee on all paid plans. No questions asked.
+          - generic [ref=e393]:
+            - heading "Can I use my own API keys?" [level=3] [ref=e394]
+            - paragraph [ref=e395]: Yes! Aiproxy is a proxy service. You bring your own API keys from OpenAI, Anthropic, etc., and we handle routing, caching, and analytics.
+      - generic [ref=e397]:
+        - heading "Ready to get started?" [level=2] [ref=e398]
+        - paragraph [ref=e399]: Start with 1,000 free requests. No credit card required.
+        - link "Start Building Free" [ref=e400] [cursor=pointer]:
+          - /url: /dashboard

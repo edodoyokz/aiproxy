@@ -1,0 +1,169 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - navigation [ref=e3]:
+      - generic [ref=e5]:
+        - generic [ref=e6]:
+          - generic [ref=e7]: AI
+          - text: Aiproxy
+        - generic [ref=e8]:
+          - link "Dashboard" [ref=e9] [cursor=pointer]:
+            - /url: /dashboard
+          - link "Docs" [ref=e10] [cursor=pointer]:
+            - /url: /docs
+          - link "Pricing" [ref=e11] [cursor=pointer]:
+            - /url: /pricing
+          - link "Get Started" [ref=e12] [cursor=pointer]:
+            - /url: /dashboard
+    - generic [ref=e15]:
+      - generic [ref=e16]:
+        - generic [ref=e17]: SaaS control plane for CLIProxyAPIPlus
+        - heading "Aiproxy gives your team a control plane for runtime-backed AI access." [level=1] [ref=e18]
+        - paragraph [ref=e19]: CLIProxyAPIPlus remains the runtime core. Aiproxy adds workspace onboarding, provider connections, tenant keys, entitlement controls, and operational visibility on top.
+        - generic [ref=e20]:
+          - link "Start setup" [ref=e21] [cursor=pointer]:
+            - /url: /dashboard
+          - link "Read docs" [ref=e22] [cursor=pointer]:
+            - /url: /docs
+        - paragraph [ref=e23]: Connect providers, issue a tenant key, and complete the first successful call without exposing raw runtime complexity.
+      - generic [ref=e24]:
+        - generic [ref=e25]:
+          - generic [ref=e26]:
+            - paragraph [ref=e27]: Workspace activation
+            - paragraph [ref=e28]: Control plane readiness for the first runtime-backed request
+          - text: In progress
+        - generic [ref=e29]:
+          - generic [ref=e31]:
+            - generic [ref=e32]:
+              - paragraph [ref=e33]: Connect provider
+              - paragraph [ref=e34]: Attach a runtime-backed provider from the control plane.
+            - text: Complete
+          - generic [ref=e36]:
+            - generic [ref=e37]:
+              - paragraph [ref=e38]: Generate tenant key
+              - paragraph [ref=e39]: Issue the workspace key that routes through the runtime core.
+            - text: Current step
+          - generic [ref=e41]:
+            - generic [ref=e42]:
+              - paragraph [ref=e43]: Observe usage
+              - paragraph [ref=e44]: Track activation status, analytics, and runtime visibility in one surface.
+            - text: Next
+        - generic [ref=e45]:
+          - paragraph [ref=e46]: Why it matters
+          - paragraph [ref=e47]: The control plane keeps onboarding, access, and workspace state understandable while the runtime core continues handling the provider-backed traffic path.
+    - generic [ref=e49]:
+      - generic [ref=e50]:
+        - heading "How Aiproxy works" [level=2] [ref=e51]
+        - paragraph [ref=e52]: Understand the runtime core, the control plane, and the activation path before you scale usage.
+      - generic [ref=e53]:
+        - generic [ref=e54]:
+          - paragraph [ref=e55]: Runtime core
+          - paragraph [ref=e56]: CLIProxyAPIPlus remains the runtime core that handles provider-backed traffic execution and request routing.
+        - generic [ref=e57]:
+          - paragraph [ref=e58]: Control plane
+          - paragraph [ref=e59]: Aiproxy sits above the runtime to manage workspace onboarding, provider connections, and entitlement state.
+        - generic [ref=e60]:
+          - paragraph [ref=e61]: Tenant keys
+          - paragraph [ref=e62]: Each workspace issues tenant keys through the control plane so access stays tied to plans, activation, and lifecycle controls.
+        - generic [ref=e63]:
+          - paragraph [ref=e64]: Analytics and admin
+          - paragraph [ref=e65]: Operational visibility, runtime awareness, and backoffice support stay in one SaaS surface instead of being scattered across tools.
+    - generic [ref=e67]:
+      - paragraph [ref=e68]: Pricing
+      - heading "Simple plans that match workspace growth" [level=2] [ref=e69]
+      - paragraph [ref=e70]: Start free while you validate the activation flow, then move to the pricing page when you need higher request volume, more provider slots, and expanded operational controls.
+      - generic [ref=e71]:
+        - link "View pricing" [ref=e72] [cursor=pointer]:
+          - /url: /pricing
+        - link "Start setup" [ref=e73] [cursor=pointer]:
+          - /url: /dashboard
+    - generic [ref=e75]:
+      - generic [ref=e76]:
+        - heading "Activation workflow" [level=2] [ref=e77]
+        - paragraph [ref=e78]: Connect provider, issue a tenant key, make your first successful request, and observe usage from one control plane.
+      - generic [ref=e79]:
+        - generic [ref=e80]:
+          - generic [ref=e82]:
+            - text: "01"
+            - generic [ref=e83]:
+              - heading "Connect provider" [level=3] [ref=e84]
+              - paragraph [ref=e85]: Attach the provider your workspace runtime will use so the control plane can unlock the traffic path.
+          - generic [ref=e87]:
+            - text: "02"
+            - generic [ref=e88]:
+              - heading "Generate tenant key" [level=3] [ref=e89]
+              - paragraph [ref=e90]: Issue a tenant-scoped key that keeps access tied to the workspace, plan limits, and activation state.
+          - generic [ref=e92]:
+            - text: "03"
+            - generic [ref=e93]:
+              - heading "First successful request" [level=3] [ref=e94]
+              - paragraph [ref=e95]: Send the first runtime-backed call and confirm the workspace is ready for real usage.
+        - generic [ref=e96]:
+          - generic [ref=e97]:
+            - heading "Operational visibility" [level=3] [ref=e98]
+            - paragraph [ref=e99]: See runtime readiness, first-call progress, and workspace state without leaving the control plane.
+          - generic [ref=e100]:
+            - heading "Entitlement enforcement" [level=3] [ref=e101]
+            - paragraph [ref=e102]: Provider slots, key issuance, and activation behavior stay connected to the workspace plan.
+          - generic [ref=e103]:
+            - heading "Admin support path" [level=3] [ref=e104]
+            - paragraph [ref=e105]: Backoffice and analytics stay close to the activation flow so support and operations share the same context.
+    - generic [ref=e108]:
+      - heading "Ready to activate your workspace?" [level=2] [ref=e109]
+      - paragraph [ref=e110]: Start setup when you are ready, or read the docs if you want to evaluate the control plane first.
+      - generic [ref=e111]:
+        - link "Start setup" [ref=e112] [cursor=pointer]:
+          - /url: /dashboard
+        - link "Read docs" [ref=e113] [cursor=pointer]:
+          - /url: /docs
+    - contentinfo [ref=e114]:
+      - generic [ref=e115]:
+        - generic [ref=e116]:
+          - generic [ref=e117]:
+            - generic [ref=e118]:
+              - generic [ref=e119]: AI
+              - text: Aiproxy
+            - paragraph [ref=e120]: The SaaS control plane for teams running CLIProxyAPIPlus.
+          - generic [ref=e121]:
+            - heading "Product" [level=4] [ref=e122]
+            - list [ref=e123]:
+              - listitem [ref=e124]:
+                - link "Overview" [ref=e125] [cursor=pointer]:
+                  - /url: /
+              - listitem [ref=e126]:
+                - link "Pricing" [ref=e127] [cursor=pointer]:
+                  - /url: /pricing
+              - listitem [ref=e128]:
+                - link "Docs" [ref=e129] [cursor=pointer]:
+                  - /url: /docs
+              - listitem [ref=e130]:
+                - link "Dashboard" [ref=e131] [cursor=pointer]:
+                  - /url: /dashboard
+          - generic [ref=e132]:
+            - heading "Activation" [level=4] [ref=e133]
+            - list [ref=e134]:
+              - listitem [ref=e135]:
+                - link "Start setup" [ref=e136] [cursor=pointer]:
+                  - /url: /dashboard
+              - listitem [ref=e137]:
+                - link "Connect provider" [ref=e138] [cursor=pointer]:
+                  - /url: /dashboard/providers
+              - listitem [ref=e139]:
+                - link "Read docs" [ref=e140] [cursor=pointer]:
+                  - /url: /docs
+              - listitem [ref=e141]:
+                - link "Log in" [ref=e142] [cursor=pointer]:
+                  - /url: /login
+          - generic [ref=e143]:
+            - heading "Workspace" [level=4] [ref=e144]
+            - list [ref=e145]:
+              - listitem [ref=e146]:
+                - link "Create workspace" [ref=e147] [cursor=pointer]:
+                  - /url: /signup
+              - listitem [ref=e148]:
+                - link "Open dashboard" [ref=e149] [cursor=pointer]:
+                  - /url: /dashboard
+              - listitem [ref=e150]:
+                - link "Compare plans" [ref=e151] [cursor=pointer]:
+                  - /url: /pricing
+        - generic [ref=e152]: © 2026 Aiproxy. All rights reserved.
+  - alert [ref=e153]

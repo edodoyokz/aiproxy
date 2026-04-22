@@ -1,5 +1,5 @@
 import { prisma } from './db'
-import { startOfDay, endOfDay, subDays } from 'date-fns'
+import { startOfDay, subDays } from 'date-fns'
 
 export async function logRequest(data: {
   apiKeyId: string
@@ -12,9 +12,41 @@ export async function logRequest(data: {
   cost: number
   status: string
   latencyMs: number
+  errorMessage?: string
 }) {
-  return prisma.request.create({ data })
+  const {
+    apiKeyId,
+    workspaceId,
+    provider,
+    model,
+    promptTokens,
+    completionTokens,
+    totalTokens,
+    cost,
+    status,
+    latencyMs,
+    errorMessage,
+  } = data
+
+  void errorMessage
+
+  return prisma.request.create({
+    data: {
+      apiKeyId,
+      workspaceId,
+      provider,
+      model,
+      promptTokens,
+      completionTokens,
+      totalTokens,
+      cost,
+      status,
+      latencyMs,
+    },
+  })
 }
+
+export const logUsageEvent = logRequest
 
 export async function getWorkspaceStats(workspaceId: string, days: number = 7) {
   const startDate = startOfDay(subDays(new Date(), days))

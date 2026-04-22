@@ -1,5 +1,5 @@
 import { prisma } from './db'
-import { AuditAction } from '@prisma/client'
+import { AuditAction, Prisma } from '@prisma/client'
 
 export async function logAudit(data: {
   workspaceId: string
@@ -7,7 +7,7 @@ export async function logAudit(data: {
   action: AuditAction
   resourceType?: string
   resourceId?: string
-  metadata?: Record<string, any>
+  metadata?: Prisma.InputJsonValue
 }) {
   return prisma.auditLog.create({
     data: {
@@ -16,7 +16,7 @@ export async function logAudit(data: {
       action: data.action,
       resourceType: data.resourceType,
       resourceId: data.resourceId,
-      metadata: data.metadata || {},
+      metadata: data.metadata ?? Prisma.JsonNull,
     },
   })
 }

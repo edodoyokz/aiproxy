@@ -18,7 +18,6 @@ import {
   TerminateRuntimeRequest,
   TerminateRuntimeResponse,
   ProviderStatusResponse,
-  ProviderType,
 } from './types'
 
 /**
