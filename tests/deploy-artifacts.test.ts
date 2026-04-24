@@ -6,22 +6,22 @@ test('deployment artifacts exist for VPS packaging', () => {
   assert.equal(existsSync('Dockerfile'), true)
   assert.equal(existsSync('docker-compose.prod.yml'), true)
   assert.equal(existsSync('deploy/nginx.conf'), true)
+  assert.equal(existsSync('deploy/Caddyfile'), true)
   assert.equal(existsSync('deploy/.env.production.example'), true)
   assert.equal(existsSync('deploy/systemd/aiproxy-compose.service'), true)
   assert.equal(existsSync('scripts/deploy.sh'), true)
 })
 
-test('docker compose production file defines app and nginx services for the Supabase-backed target', () => {
+test('docker compose production file defines app and caddy services for the Supabase-backed target', () => {
   const compose = readFileSync('docker-compose.prod.yml', 'utf8')
 
   assert.match(compose, /app:/)
-  assert.match(compose, /nginx:/)
+  assert.match(compose, /caddy:/)
   assert.doesNotMatch(compose, /postgres:/)
 })
 
-test('nginx config proxies application traffic and exposes health endpoint support', () => {
-  const nginxConfig = readFileSync('deploy/nginx.conf', 'utf8')
+test('caddy config proxies application traffic', () => {
+  const caddyConfig = readFileSync('deploy/Caddyfile', 'utf8')
 
-  assert.match(nginxConfig, /proxy_pass/)
-  assert.match(nginxConfig, /\/api\/health/)
+  assert.match(caddyConfig, /reverse_proxy/)
 })

@@ -5,14 +5,35 @@ type LogContext = Record<string, unknown> & {
   runtimeId?: string
   provider?: string
   operation?: string
+  requestId?: string
+  userId?: string
+  apiKeyId?: string
+  model?: string
+  latencyMs?: number
+  status?: number | string
+  error?: Error
 }
 
 function write(level: LogLevel, message: string, context: LogContext = {}) {
-  const entry = {
+  const entry: Record<string, unknown> = {
     level,
     message,
     timestamp: new Date().toISOString(),
-    ...context,
+  }
+
+  // Extract error object for special handling
+  const { error, ...restContext } = context
+  
+  // Add context fields
+  Object.assign(entry, restContext)
+
+  // Add error details if present
+  if (error) {
+    entry.error = {
+      name: error.name,
+      message: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+    }
   }
 
   const serialized = JSON.stringify(entry)
@@ -42,5 +63,11 @@ export const logger = {
   },
   runtime(message: string, context?: LogContext) {
     write('info', message, { operation: 'runtime', ...context })
+  },
+  proxy(message: string, context?: LogContext) {
+    write('info', message, { operation: 'proxy', ...context })
+  },
+  auth(message: string, context?: LogContext) {
+    write('info', message, { operation: 'auth', ...context })
   },
 }

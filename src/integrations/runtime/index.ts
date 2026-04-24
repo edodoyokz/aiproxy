@@ -8,6 +8,7 @@
 import { prisma } from '@/lib/db'
 import { getRuntimeAdapter } from './adapter-instance'
 import { provisionWorkspaceRuntime, syncWorkspaceUsage } from './service'
+import { validateWorkspaceLimit } from '@/lib/workspace'
 
 /**
  * TODO: Replace with real CLIProxyAPIPlus adapter when ready
@@ -44,9 +45,11 @@ export const runtimeService = {
     provider: string,
     model: string,
   ) {
+    const limitCheck = await validateWorkspaceLimit(workspaceId, 'requests')
+
     return {
-      allowed: true,
-      reason: undefined,
+      allowed: limitCheck.allowed,
+      reason: limitCheck.reason,
       workspaceId,
       apiKeyId,
       provider,

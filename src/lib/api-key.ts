@@ -1,8 +1,12 @@
 import { prisma } from './db'
-import { randomBytes } from 'crypto'
+import { randomBytes, createHash } from 'crypto'
 
 export function generateApiKey(): string {
   return `sk-${randomBytes(32).toString('hex')}`
+}
+
+export function hashApiKey(key: string): string {
+  return createHash('sha256').update(key).digest('hex')
 }
 
 export function maskApiKey(key: string): string {
@@ -14,8 +18,9 @@ export function maskApiKey(key: string): string {
 }
 
 export async function validateApiKey(key: string) {
+  const keyHash = hashApiKey(key)
   const apiKey = await prisma.apiKey.findUnique({
-    where: { key },
+    where: { keyHash },
     include: { workspace: true },
   })
 

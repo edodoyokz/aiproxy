@@ -1,24 +1,35 @@
 # Aiproxy
 
+**Status: Public Beta**
+
 Aiproxy is a SaaS control plane built to monetize `CLIProxyAPIPlus` as the runtime core. Instead of replacing the proxy engine, Aiproxy wraps workspace onboarding, provider connection, entitlement enforcement, analytics, and admin operations around isolated customer runtimes.
+
+> **Beta Notice:** Aiproxy is currently in public beta. Features and APIs may change. See `LAUNCH_SCOPE.md` for details on what's supported.
 
 ## Product model
 
 - **Core runtime:** `CLIProxyAPIPlus`
 - **Commercial layer:** Aiproxy web control plane
 - **Runtime strategy:** hybrid pooled infrastructure with one runtime/container per workspace
-- **Monetization:** fixed subscription tiers with entitlement-first activation
+- **Beta monetization:** Free tier only (billing coming post-beta)
 - **Primary journey:** signup → create workspace → connect provider → generate tenant key → make first successful call
 
 ## Features
 
-- **Workspace-scoped subscriptions** (Free, Starter, Pro plans)
+### Available in Beta
+- **Workspace creation** (one workspace per user at signup)
 - **Runtime provisioning per workspace** using `CLIProxyAPIPlus` as core
-- **Provider connection management** for all providers supported by the core runtime
+- **Provider connection management** (OpenAI primary, others experimental)
 - **Tenant API key management** with usage tracking and limits
-- **Real-time analytics** with usage events and aggregation
+- **Real-time analytics** with usage events and cost estimation
 - **Audit logging** for security and compliance
-- **Admin/backoffice operations** for entitlement, runtime state, and support workflows
+- **Platform admin operations** for workspace management and support
+
+### Coming Post-Beta
+- Self-serve billing and subscriptions
+- Multi-workspace per user
+- Advanced analytics dashboards
+- Enterprise features (SSO, teams, custom SLAs)
 
 ## Tech Stack
 
@@ -178,9 +189,20 @@ npm run db:seed
 - `prisma/dev.db` is a historical local artifact and is not part of the PostgreSQL deployment path.
 - The repository currently targets PostgreSQL as the source of truth for production readiness work.
 
-## Next steps
+## Beta Limitations
 
-See:
+- **No billing:** Free tier only during beta
+- **Single region:** US East deployment only
+- **Best-effort support:** Community support via GitHub issues
+- **No SLA:** Beta stability level, potential breaking changes with notice
+- **Rate limits:** Standard rate limiting on auth and API routes
 
-- `docs/plans/2026-04-17-aiproxy-core-realignment-design.md`
-- `docs/plans/2026-04-17-aiproxy-core-realignment-implementation.md`
+See `LAUNCH_SCOPE.md` for complete beta scope and limitations.
+
+## Contributing
+
+This project is in active development. For issues or feature requests, please use GitHub issues.
+
+## License
+
+[Add license information]

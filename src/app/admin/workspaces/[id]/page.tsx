@@ -12,7 +12,7 @@ export default async function AdminWorkspaceDetailPage(
     redirect('/')
   }
 
-  if (!['owner', 'admin'].includes(auth.role)) {
+  if (!auth.isPlatformAdmin) {
     redirect('/dashboard')
   }
 

@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 
 import { decrypt } from '@/lib/session'
 
-const protectedPrefixes = ['/dashboard']
+const protectedPrefixes = ['/dashboard', '/admin']
 const authPages = ['/login', '/signup']
 
 export async function middleware(request: NextRequest) {
@@ -25,5 +25,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/login', '/signup'],
+  matcher: ['/dashboard/:path*', '/admin/:path*', '/login', '/signup'],
 }

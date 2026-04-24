@@ -28,8 +28,9 @@ test('runtime service persists runtime-bound key identifiers and relationships',
     'utf8',
   )
 
-  assert.match(source, /id:\s*response\.keyId/)
-  assert.match(source, /runtimeId:\s*runtime\.id/)
+  assert.match(source, /key:\s*response\.key/)
+  assert.match(source, /keyHash:\s*hashApiKey\(response\.key\)/)
+  assert.match(source, /runtimeId:\s*response\.runtimeId/)
   assert.match(source, /await adapter\.revokeApiKey\(apiKey\.runtimeId, keyId\)/)
 })
 

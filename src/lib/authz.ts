@@ -2,6 +2,7 @@ import 'server-only'
 
 import { getSession } from './session'
 import { getDefaultWorkspaceMembership, requireUserWorkspace } from './auth'
+import { isPlatformAdmin } from './platform-admin'
 
 export async function getAuthenticatedContext() {
   const session = await getSession()
@@ -12,11 +13,13 @@ export async function getAuthenticatedContext() {
 
   const membership = await requireUserWorkspace(session.userId, session.workspaceId)
   if (membership) {
+    const platformAdmin = await isPlatformAdmin(session.userId)
     return {
       userId: session.userId,
       workspaceId: session.workspaceId,
       role: membership.role,
       workspace: membership.workspace,
+      isPlatformAdmin: platformAdmin,
     }
   }
 
@@ -25,11 +28,13 @@ export async function getAuthenticatedContext() {
     return null
   }
 
+  const platformAdmin = await isPlatformAdmin(session.userId)
   return {
     userId: session.userId,
     workspaceId: fallbackMembership.workspaceId,
     role: fallbackMembership.role,
     workspace: fallbackMembership.workspace,
+    isPlatformAdmin: platformAdmin,
   }
 }
 

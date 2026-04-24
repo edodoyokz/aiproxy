@@ -7,6 +7,7 @@ import {
 } from '@/lib/auth'
 import { createSession } from '@/lib/session'
 import { z } from 'zod'
+import { checkRateLimit } from '@/lib/security/rate-limit'
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -14,6 +15,22 @@ const loginSchema = z.object({
 })
 
 export async function POST(request: NextRequest) {
+  // Rate limit by IP address
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ?? 'unknown'
+  const rateLimit = checkRateLimit(`login:${ip}`, 10, 60 * 1000) // 10 requests per minute
+
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { error: 'Too many login attempts. Please try again later.' },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': Math.ceil((rateLimit.resetAt - Date.now()) / 1000).toString(),
+        },
+      }
+    )
+  }
+
   try {
     const body = await request.json()
     const { email, password } = loginSchema.parse(body)

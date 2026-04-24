@@ -1,6 +1,8 @@
 import { prisma } from './db'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
+import { PlanTier } from '@prisma/client'
+import { PLAN_DEFAULTS } from './plans'
 
 const failedLoginAttempts = new Map<string, { count: number; lastFailedAt: number }>()
 const LOGIN_BACKOFF_THRESHOLD = 3
@@ -46,6 +48,8 @@ export async function createUser(email: string, password: string, name?: string)
   const passwordHash = await hashPassword(password)
   const workspaceName = name?.trim() ? `${name.trim()}'s Workspace` : email.split('@')[0]
   const slug = await createUniqueWorkspaceSlug(workspaceName)
+  const planTier = PlanTier.FREE
+  const planDefaults = PLAN_DEFAULTS[planTier]
 
   return prisma.user.create({
     data: {
@@ -59,6 +63,16 @@ export async function createUser(email: string, password: string, name?: string)
             create: {
               name: workspaceName,
               slug,
+              planTier,
+              entitlement: {
+                create: {
+                  effectiveTier: planTier,
+                  maxApiKeys: planDefaults.maxApiKeys,
+                  maxProviders: planDefaults.maxProviders,
+                  maxRequests: planDefaults.maxRequests,
+                  retentionDays: planDefaults.retentionDays,
+                },
+              },
             },
           },
         },
@@ -67,7 +81,11 @@ export async function createUser(email: string, password: string, name?: string)
     include: {
       workspaces: {
         include: {
-          workspace: true,
+          workspace: {
+            include: {
+              entitlement: true,
+            },
+          },
         },
         orderBy: { createdAt: 'asc' },
       },

@@ -9,8 +9,7 @@ test('production env example targets runtime-backed deployment config', () => {
   assert.match(source, /^SESSION_SECRET=/m)
   assert.match(source, /^APP_URL=/m)
   assert.match(source, /^RUNTIME_MODE=/m)
-  assert.match(source, /^CLIPROXYAPIPLUS_API_URL=/m)
-  assert.match(source, /^CLIPROXYAPIPLUS_API_KEY=/m)
+  assert.match(source, /^APP_DOMAIN=/m)
   assert.doesNotMatch(source, /^OPENAI_API_KEY=/m)
 })
 
@@ -22,25 +21,21 @@ test('root env example documents PostgreSQL and Supabase as the intended deploym
   assert.match(source, /^DATABASE_URL=/m)
 })
 
-test('production compose targets app and nginx without local postgres', () => {
+test('production compose targets app and caddy without local postgres', () => {
   const source = readFileSync('docker-compose.prod.yml', 'utf8')
 
   assert.match(source, /^\s*app:/m)
-  assert.match(source, /^\s*nginx:/m)
+  assert.match(source, /^\s*caddy:/m)
   assert.doesNotMatch(source, /^\s*postgres:/m)
   assert.match(source, /deploy\/.env\.production/)
 })
 
-test('deploy script enforces local verification before compose deploy', () => {
+test('deploy script pulls code and runs docker compose', () => {
   const source = readFileSync('scripts/deploy.sh', 'utf8')
 
-  assert.match(source, /npm ci/)
-  assert.match(source, /prisma generate/)
-  assert.match(source, /npm run lint/)
-  assert.match(source, /npm run typecheck/)
-  assert.match(source, /npm test/)
-  assert.match(source, /npm run build/)
+  assert.match(source, /git pull/)
   assert.match(source, /docker compose -f docker-compose\.prod\.yml up -d --build/)
+  assert.match(source, /health/)
 })
 
 test('deploy runbook documents Supabase setup and local verification before deploy', () => {

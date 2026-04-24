@@ -16,7 +16,7 @@ export async function GET(
   try {
     const auth = await requireAuthenticatedContext()
 
-    if (!['owner', 'admin'].includes(auth.role)) {
+    if (!auth.isPlatformAdmin) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -48,7 +48,7 @@ export async function PATCH(
   try {
     const auth = await requireAuthenticatedContext()
 
-    if (!['owner', 'admin'].includes(auth.role)) {
+    if (!auth.isPlatformAdmin) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 

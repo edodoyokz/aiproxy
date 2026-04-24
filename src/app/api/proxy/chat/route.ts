@@ -5,30 +5,46 @@ import { logUsageEvent } from '@/lib/analytics'
 import { chatCompletionRequestSchema } from '@/lib/providers/proxy'
 import { getProxyErrorResponse, resolveRequestId } from '@/lib/proxy-http'
 import { forwardChatCompletionToRuntime } from '@/lib/runtime-proxy'
+import { calculateCost } from '@/lib/cost-calculator'
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now()
   const requestId = resolveRequestId(request.headers.get('x-request-id'))
-  
+
+  // CORS headers for browser-based clients
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-request-id',
+  }
+
+  // Handle preflight request
+  if (request.method === 'OPTIONS') {
+    return new NextResponse(null, { headers: corsHeaders })
+  }
+
+  let apiKey: Awaited<ReturnType<typeof validateApiKey>> = null
+
   try {
     const authHeader = request.headers.get('authorization')
     if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Missing or invalid authorization header' }, { status: 401 })
+      return NextResponse.json({ error: 'Missing or invalid authorization header' }, { status: 401, headers: corsHeaders })
     }
 
     const token = authHeader.substring(7)
-    const apiKey = await validateApiKey(token)
+    apiKey = await validateApiKey(token)
 
     if (!apiKey) {
-      return NextResponse.json({ error: 'Invalid API key' }, { status: 401 })
+      return NextResponse.json({ error: 'Invalid API key' }, { status: 401, headers: corsHeaders })
     }
 
     // Check workspace limits
     const canProceed = await checkWorkspaceLimit(apiKey.workspaceId)
     if (!canProceed) {
-      return NextResponse.json({ 
-        error: 'Workspace limit exceeded. Upgrade your plan to continue.' 
-      }, { status: 429 })
+      return NextResponse.json(
+        { error: 'Workspace limit exceeded. Upgrade your plan to continue.' },
+        { status: 429, headers: corsHeaders }
+      )
     }
 
     const parsed = chatCompletionRequestSchema.parse(await request.json())
@@ -39,6 +55,14 @@ export async function POST(request: NextRequest) {
 
     const latencyMs = Date.now() - startTime
 
+    // Calculate estimated cost
+    const estimatedCost = calculateCost(
+      parsed.provider,
+      parsed.model,
+      upstream.usage.promptTokens,
+      upstream.usage.completionTokens,
+    )
+
     // Log usage event
     await logUsageEvent({
       workspaceId: apiKey.workspaceId,
@@ -48,7 +72,7 @@ export async function POST(request: NextRequest) {
       promptTokens: upstream.usage.promptTokens,
       completionTokens: upstream.usage.completionTokens,
       totalTokens: upstream.usage.totalTokens,
-      cost: 0,
+      cost: estimatedCost,
       latencyMs,
       status: 'success',
     })
@@ -56,36 +80,32 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(upstream.response, {
       headers: {
         'x-request-id': requestId,
+        ...corsHeaders,
       },
     })
   } catch (error) {
     console.error('Proxy error:', error)
-    
-    // Log failed usage event
+
+    // Log failed usage event if apiKey is available
     const latencyMs = Date.now() - startTime
-    try {
-      const authHeader = request.headers.get('authorization')
-      if (authHeader?.startsWith('Bearer ')) {
-        const token = authHeader.substring(7)
-        const apiKey = await validateApiKey(token)
-        if (apiKey) {
-          await logUsageEvent({
-            workspaceId: apiKey.workspaceId,
-            apiKeyId: apiKey.id,
-            provider: 'openai',
-            model: 'unknown',
-            promptTokens: 0,
-            completionTokens: 0,
-            totalTokens: 0,
-            cost: 0,
-            latencyMs,
-            status: 'error',
-            errorMessage: error instanceof Error ? error.message : 'Unknown error',
-          })
-        }
+    if (apiKey) {
+      try {
+        await logUsageEvent({
+          workspaceId: apiKey.workspaceId,
+          apiKeyId: apiKey.id,
+          provider: 'openai',
+          model: 'unknown',
+          promptTokens: 0,
+          completionTokens: 0,
+          totalTokens: 0,
+          cost: 0,
+          latencyMs,
+          status: 'error',
+          errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        })
+      } catch (logError) {
+        console.error('Failed to log error event:', logError)
       }
-    } catch (logError) {
-      console.error('Failed to log error event:', logError)
     }
 
     const errorResponse = getProxyErrorResponse(error, requestId)
@@ -94,7 +114,18 @@ export async function POST(request: NextRequest) {
       status: errorResponse.status,
       headers: {
         'x-request-id': requestId,
+        ...corsHeaders,
       },
     })
   }
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-request-id',
+    },
+  })
 }

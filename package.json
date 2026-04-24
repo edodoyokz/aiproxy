@@ -17,9 +17,7 @@
     "db:seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
-    "@libsql/client": "^0.17.2",
-    "@prisma/adapter-libsql": "^7.7.0",
-    "@prisma/client": "^6.1.0",
+    "@prisma/client": "^6.19.3",
     "bcryptjs": "^2.4.3",
     "date-fns": "^4.1.0",
     "jose": "^5.10.0",

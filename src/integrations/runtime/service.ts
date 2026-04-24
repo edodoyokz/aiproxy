@@ -1,6 +1,6 @@
 /**
  * Runtime Service Layer
- * 
+ *
  * High-level service that coordinates runtime operations with local database state.
  * This layer bridges the runtime adapter (CLIProxyAPIPlus) with Prisma models.
  */
@@ -15,6 +15,7 @@ import {
 } from './types'
 import { logAudit } from '@/lib/audit'
 import { AuditAction } from '@prisma/client'
+import { hashApiKey } from '@/lib/api-key'
 
 /**
  * Provision a new runtime for a workspace
@@ -68,7 +69,7 @@ export async function provisionWorkspaceRuntime(
   await logAudit({
     workspaceId,
     userId,
-    action: AuditAction.WORKSPACE_CREATED, // TODO: Add RUNTIME_PROVISIONED action
+    action: AuditAction.RUNTIME_PROVISIONED,
     resourceType: 'Runtime',
     resourceId: runtime.id,
     metadata: { planTier: workspace.planTier },
@@ -124,7 +125,7 @@ export async function connectWorkspaceProvider(
   await logAudit({
     workspaceId,
     userId,
-    action: AuditAction.WORKSPACE_CREATED, // TODO: Add PROVIDER_CONNECTED action
+    action: AuditAction.PROVIDER_CONNECTED,
     resourceType: 'ProviderConnection',
     resourceId: connection.id,
     metadata: { provider },
@@ -205,12 +206,12 @@ export async function issueWorkspaceApiKey(
   // Store in database
   const apiKey = await prisma.apiKey.create({
     data: {
-      id: response.keyId,
       key: response.key,
+      keyHash: hashApiKey(response.key),
       name: keyName,
       workspaceId,
       createdBy: userId,
-      runtimeId: runtime.id,
+      runtimeId: response.runtimeId,
     },
   })
 
@@ -416,7 +417,7 @@ export async function resumeWorkspaceRuntime(
   await logAudit({
     workspaceId,
     userId,
-    action: AuditAction.WORKSPACE_CREATED, // TODO: Add WORKSPACE_RESUMED action
+    action: AuditAction.WORKSPACE_REACTIVATED,
     resourceType: 'Runtime',
     resourceId: runtime.id,
     metadata: {},

@@ -1,6 +1,7 @@
 import { z } from 'zod'
+import { ProviderType } from '@/integrations/runtime/types'
 
-const providerSchema = z.enum(['openai'])
+const providerSchema = z.nativeEnum(ProviderType)
 
 const messageSchema = z.object({
   role: z.enum(['system', 'user', 'assistant']),
@@ -8,7 +9,7 @@ const messageSchema = z.object({
 })
 
 export const chatCompletionRequestSchema = z.object({
-  provider: providerSchema.default('openai'),
+  provider: providerSchema.default(ProviderType.OPENAI),
   model: z.string().min(1),
   messages: z.array(messageSchema).min(1),
 })

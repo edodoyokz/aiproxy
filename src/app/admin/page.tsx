@@ -11,7 +11,7 @@ export default async function AdminPage() {
     redirect('/')
   }
 
-  if (!['owner', 'admin'].includes(auth.role)) {
+  if (!auth.isPlatformAdmin) {
     redirect('/dashboard')
   }
 

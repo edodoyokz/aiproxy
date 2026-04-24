@@ -6,6 +6,7 @@ import {
   normalizeOpenAIChatResponse,
   proxyChatCompletion,
 } from '../src/lib/providers/proxy'
+import { ProviderType } from '../src/integrations/runtime/types'
 
 test('runtime proxy module exists as the primary request execution surface', async () => {
   const { readFile } = await import('node:fs/promises')
@@ -68,7 +69,7 @@ test('proxy forwards request id header to upstream providers', async () => {
   try {
     await proxyChatCompletion(
       {
-        provider: 'openai',
+        provider: ProviderType.OPENAI,
         model: 'gpt-4o-mini',
         messages: [{ role: 'user', content: 'hello' }],
       },
@@ -99,7 +100,7 @@ test('proxy wraps upstream failures with status-aware errors', async () => {
     await assert.rejects(
       () =>
         proxyChatCompletion({
-          provider: 'openai',
+          provider: ProviderType.OPENAI,
           model: 'gpt-4o-mini',
           messages: [{ role: 'user', content: 'hello' }],
         }),
@@ -146,7 +147,7 @@ test('proxy retries once for transient upstream failures', async () => {
 
   try {
     const result = await proxyChatCompletion({
-      provider: 'openai',
+      provider: ProviderType.OPENAI,
       model: 'gpt-4o-mini',
       messages: [{ role: 'user', content: 'hello' }],
     })

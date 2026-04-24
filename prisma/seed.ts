@@ -1,7 +1,11 @@
 import { PrismaClient, PlanTier, AuditAction } from '@prisma/client'
 import { hash } from 'bcryptjs'
-import { randomBytes } from 'crypto'
+import { randomBytes, createHash } from 'crypto'
 import { subDays, subHours } from 'date-fns'
+
+function hashApiKey(key: string): string {
+  return createHash('sha256').update(key).digest('hex')
+}
 
 const prisma = new PrismaClient()
 const DEMO_SEED_ENABLED = process.env.DEMO_SEED_ENABLED === 'true'
@@ -49,18 +53,22 @@ async function seedDemoData() {
     },
   })
 
+  const freeApiKey1Key = `sk_free_${randomBytes(24).toString('hex')}`
   const freeApiKey1 = await prisma.apiKey.create({
     data: {
-      key: `sk_free_${randomBytes(24).toString('hex')}`,
+      key: freeApiKey1Key,
+      keyHash: hashApiKey(freeApiKey1Key),
       name: 'Development Key',
       workspaceId: freeWorkspace.id,
       createdBy: alice.id,
     },
   })
 
+  const freeApiKey2Key = `sk_free_${randomBytes(24).toString('hex')}`
   await prisma.apiKey.create({
     data: {
-      key: `sk_free_${randomBytes(24).toString('hex')}`,
+      key: freeApiKey2Key,
+      keyHash: hashApiKey(freeApiKey2Key),
       name: 'Production Key',
       workspaceId: freeWorkspace.id,
       createdBy: alice.id,
@@ -96,9 +104,11 @@ async function seedDemoData() {
     },
   })
 
+  const starterApiKeyKey = `sk_starter_${randomBytes(24).toString('hex')}`
   const starterApiKey = await prisma.apiKey.create({
     data: {
-      key: `sk_starter_${randomBytes(24).toString('hex')}`,
+      key: starterApiKeyKey,
+      keyHash: hashApiKey(starterApiKeyKey),
       name: 'API Key 1',
       workspaceId: starterWorkspace.id,
       createdBy: bob.id,
@@ -131,9 +141,11 @@ async function seedDemoData() {
     },
   })
 
+  const proApiKeyKey = `sk_pro_${randomBytes(24).toString('hex')}`
   const proApiKey = await prisma.apiKey.create({
     data: {
-      key: `sk_pro_${randomBytes(24).toString('hex')}`,
+      key: proApiKeyKey,
+      keyHash: hashApiKey(proApiKeyKey),
       name: 'Production Key 1',
       workspaceId: proWorkspace.id,
       createdBy: charlie.id,

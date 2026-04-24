@@ -17,6 +17,29 @@ function getSessionSecret(): Uint8Array {
     throw new Error('SESSION_SECRET is required')
   }
 
+  // Validate secret strength in production
+  if (process.env.NODE_ENV === 'production') {
+    const MIN_SECRET_LENGTH = 32
+    const PLACEHOLDER_VALUES = [
+      'your-secret-key-here-change-in-production',
+      'replace-with-a-long-random-secret',
+      'secret',
+      'change-me',
+    ]
+
+    if (secret.length < MIN_SECRET_LENGTH) {
+      throw new Error(
+        `SESSION_SECRET must be at least ${MIN_SECRET_LENGTH} characters in production. Current length: ${secret.length}`
+      )
+    }
+
+    if (PLACEHOLDER_VALUES.includes(secret.toLowerCase())) {
+      throw new Error(
+        'SESSION_SECRET must be changed from the placeholder value in production'
+      )
+    }
+  }
+
   return new TextEncoder().encode(secret)
 }
 
