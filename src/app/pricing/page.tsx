@@ -6,6 +6,32 @@ import { Check } from 'lucide-react'
 
 export default function PricingPage() {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly')
+  const [loading, setLoading] = useState<string | null>(null)
+
+  const handleCheckout = async (plan: 'STARTER' | 'PRO') => {
+    setLoading(plan)
+    try {
+      const response = await fetch('/api/billing/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan, billingCycle }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to create checkout session')
+      }
+
+      const { url } = await response.json()
+      if (url) {
+        window.location.href = url
+      }
+    } catch (error) {
+      console.error('Checkout error:', error)
+      alert('Failed to start checkout. Please try again.')
+    } finally {
+      setLoading(null)
+    }
+  }
 
   const plans = [
     {
@@ -179,16 +205,17 @@ export default function PricingPage() {
                 )}
               </div>
 
-              <Link
-                href="/dashboard"
+              <button
+                onClick={() => plan.name === 'Free' ? (window.location.href = '/dashboard') : handleCheckout(plan.name.toUpperCase() as 'STARTER' | 'PRO')}
+                disabled={loading === plan.name.toUpperCase()}
                 className={`block w-full py-3 px-6 rounded-lg font-semibold text-center transition-all mb-6 ${
                   plan.highlighted
                     ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/25'
                     : 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700'
-                }`}
+                } ${loading === plan.name.toUpperCase() ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                {plan.cta}
-              </Link>
+                {loading === plan.name.toUpperCase() ? 'Processing...' : plan.cta}
+              </button>
 
               <div className="space-y-4">
                 <div>

@@ -59,14 +59,16 @@ model User {
 }
 
 model Workspace {
-  id              String   @id @default(cuid())
-  name            String
-  slug            String   @unique
-  planTier        PlanTier @default(FREE)
-  isSuspended     Boolean  @default(false)
-  suspendedReason String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                String   @id @default(cuid())
+  name              String
+  slug              String   @unique
+  planTier          PlanTier @default(FREE)
+  isSuspended       Boolean  @default(false)
+  suspendedReason   String?
+  stripeCustomerId  String?  @unique
+  stripeSubscriptionId String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   members     WorkspaceMember[]
   apiKeys     ApiKey[]
@@ -80,6 +82,7 @@ model Workspace {
   entitlementEvents EntitlementChangeEvent[]
 
   @@index([slug])
+  @@index([stripeCustomerId])
 }
 
 model WorkspaceEntitlement {
@@ -181,14 +184,15 @@ model Runtime {
 }
 
 model ProviderConnection {
-  id          String                   @id @default(cuid())
-  workspaceId String
-  runtimeId   String
-  provider    String // openai, anthropic, google, etc
-  status      ProviderConnectionStatus @default(PENDING)
-  isActive    Boolean                  @default(true)
-  createdAt   DateTime                 @default(now())
-  updatedAt   DateTime                 @updatedAt
+  id               String                   @id @default(cuid())
+  workspaceId      String
+  runtimeId        String
+  provider         String // openai, anthropic, google, etc
+  status           ProviderConnectionStatus @default(PENDING)
+  isActive         Boolean                  @default(true)
+  encryptedApiKey  String?                  // AES-256-GCM encrypted provider API key
+  createdAt        DateTime                 @default(now())
+  updatedAt        DateTime                 @updatedAt
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   runtime   Runtime   @relation(fields: [runtimeId], references: [id], onDelete: Cascade)

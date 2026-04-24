@@ -4,7 +4,8 @@ import { checkWorkspaceLimit } from '@/lib/workspace'
 import { logUsageEvent } from '@/lib/analytics'
 import { chatCompletionRequestSchema } from '@/lib/providers/proxy'
 import { getProxyErrorResponse, resolveRequestId } from '@/lib/proxy-http'
-import { forwardChatCompletionToRuntime } from '@/lib/runtime-proxy'
+import { forwardToProvider } from '@/lib/providers/forward'
+import { getProviderApiKeyByWorkspace } from '@/lib/provider-keys'
 import { calculateCost } from '@/lib/cost-calculator'
 
 export async function POST(request: NextRequest) {
@@ -48,10 +49,25 @@ export async function POST(request: NextRequest) {
     }
 
     const parsed = chatCompletionRequestSchema.parse(await request.json())
-    const upstream = await forwardChatCompletionToRuntime(apiKey.workspaceId, parsed, {
-      requestId,
-      runtimeId: apiKey.runtimeId,
-    })
+
+    // Get the provider's encrypted API key
+    const providerApiKey = await getProviderApiKeyByWorkspace(
+      apiKey.workspaceId,
+      parsed.provider
+    )
+
+    if (!providerApiKey) {
+      return NextResponse.json(
+        { error: 'Provider not connected. Please connect this provider in your dashboard.' },
+        { status: 400, headers: corsHeaders }
+      )
+    }
+
+    // Forward directly to the provider
+    const upstream = await forwardToProvider(parsed.provider, providerApiKey, {
+      model: parsed.model,
+      messages: parsed.messages,
+    }, { requestId })
 
     const latencyMs = Date.now() - startTime
 

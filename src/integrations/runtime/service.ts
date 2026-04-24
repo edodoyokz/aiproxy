@@ -16,6 +16,7 @@ import {
 import { logAudit } from '@/lib/audit'
 import { AuditAction } from '@prisma/client'
 import { hashApiKey } from '@/lib/api-key'
+import { encrypt } from '@/lib/encryption'
 
 /**
  * Provision a new runtime for a workspace
@@ -87,9 +88,12 @@ export async function connectWorkspaceProvider(
   provider: ProviderType,
   apiKey: string
 ): Promise<string> {
+  // Encrypt the provider API key before storing
+  const encryptedApiKey = encrypt(apiKey)
+
   // Get or provision runtime
   let runtime = await prisma.runtime.findFirst({
-    where: { 
+    where: {
       workspaceId,
       status: { in: ['PROVISIONING', 'ACTIVE'] }
     },
@@ -110,7 +114,7 @@ export async function connectWorkspaceProvider(
     apiKey,
   })
 
-  // Store connection in database
+  // Store connection in database with encrypted API key
   const connection = await prisma.providerConnection.create({
     data: {
       id: response.connectionId,
@@ -118,6 +122,7 @@ export async function connectWorkspaceProvider(
       runtimeId: runtime.id,
       provider: response.provider,
       status: response.status,
+      encryptedApiKey,
     },
   })
 
