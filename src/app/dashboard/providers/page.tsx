@@ -4,6 +4,8 @@ import { getAuthenticatedContext } from '@/lib/authz'
 import { prisma } from '@/lib/db'
 import { PROVIDER_CATALOG_LIST } from '@/lib/providers/catalog'
 import { getWorkspaceUsage } from '@/lib/workspace'
+import { ConnectProviderCard } from '@/components/connect-provider-card'
+import { DisconnectProviderButton } from '@/components/disconnect-provider-button'
 
 export default async function ProvidersPage() {
   const auth = await getAuthenticatedContext()
@@ -21,6 +23,7 @@ export default async function ProvidersPage() {
 
   const remainingSlots = Math.max((usage?.providers.limit ?? 0) - (usage?.providers.current ?? 0), 0)
   const hasConnections = connections.length > 0
+  const connectedProviderIds = new Set(connections.map(c => c.provider))
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 px-4 py-10 sm:px-6 lg:px-8">
@@ -78,15 +81,12 @@ export default async function ProvidersPage() {
 
           <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {PROVIDER_CATALOG_LIST.map(provider => (
-              <div key={provider.id} className="rounded-lg border border-slate-800 bg-slate-950/40 p-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-medium text-white">{provider.name}</h3>
-                  <span className="rounded-full bg-blue-500/10 px-2 py-1 text-xs font-medium text-blue-300">
-                    {provider.runtime}
-                  </span>
-                </div>
-                <p className="mt-2 text-sm text-slate-400">{provider.description}</p>
-              </div>
+              <ConnectProviderCard
+                key={provider.id}
+                provider={provider}
+                remainingSlots={remainingSlots}
+                isAlreadyConnected={connectedProviderIds.has(provider.id)}
+              />
             ))}
           </div>
         </section>
@@ -108,9 +108,12 @@ export default async function ProvidersPage() {
                     <p className="font-medium capitalize text-white">{connection.provider}</p>
                     <p className="text-sm text-slate-400">Connection ID: {connection.id}</p>
                   </div>
-                  <span className="rounded-full bg-slate-800 px-3 py-1 text-xs font-medium text-slate-300">
-                    {connection.status}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-full bg-slate-800 px-3 py-1 text-xs font-medium text-slate-300">
+                      {connection.status}
+                    </span>
+                    <DisconnectProviderButton connectionId={connection.id} provider={connection.provider} />
+                  </div>
                 </div>
               ))
             )}

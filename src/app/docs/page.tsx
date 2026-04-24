@@ -96,7 +96,7 @@ export default function DocsPage() {
 
 const client = new OpenAI({
   apiKey: process.env.AIPROXY_KEY,
-  baseURL: 'https://api.aiproxy.io/v1'
+  baseURL: 'https://YOUR_DOMAIN/api/proxy'
 })
 
 const response = await client.chat.completions.create({

@@ -2,10 +2,11 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { OnboardingChecklist } from '@/components/onboarding-checklist'
 import { UpgradePrompt } from '@/components/upgrade-prompt'
+import { LogoutButton } from '@/components/logout-button'
 import { getWorkspaceStats } from '@/lib/analytics'
 import { getAuthenticatedContext } from '@/lib/authz'
 import { getWorkspaceUsage } from '@/lib/workspace'
-import { Activity, Key, Zap, TrendingUp, Settings, Plus } from 'lucide-react'
+import { Activity, Key, Zap, TrendingUp, Plus } from 'lucide-react'
 
 interface UsageStats {
   currentRequests: number
@@ -114,9 +115,7 @@ export default async function DashboardPage() {
               <Link href="/pricing" className="text-slate-400 hover:text-white transition-colors text-sm font-medium">
                 Upgrade
               </Link>
-              <button className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 flex items-center justify-center transition-colors">
-                <Settings className="w-4 h-4 text-slate-400" />
-              </button>
+              <LogoutButton />
             </div>
           </div>
         </div>
